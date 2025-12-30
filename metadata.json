@@ -1,0 +1,5 @@
+{
+  "name": "ReviewHub",
+  "description": "A scalable, community-powered review platform featuring authentication, feed browsing, search, and review management.",
+  "requestFramePermissions": []
+}

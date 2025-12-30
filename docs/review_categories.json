@@ -1,0 +1,1320 @@
+{
+  "schemaVersion": "1.0",
+  "description": "Configuration for ReviewHub review categories, input fields, and tags. Perfected with additional unique secondary inputs for each category based on research into common review/reporting fields in Sri Lanka-specific contexts (e.g., from user forums, government guidelines, app reviews, and scam reports). These enhance specificity while keeping inputs optional to maintain user-friendliness and minimize typing.",
+  "categories": [
+    {
+      "id": "ride_share",
+      "label": "Ride Share",
+      "icon": "local_taxi",
+      "style": {
+        "colorClass": "text-yellow-500 bg-yellow-500/10 border-yellow-500/20"
+      },
+      "form": {
+        "title": "Ride Share Experience",
+        "primaryInput": {
+          "label": "Vehicle Number (Required)",
+          "placeholder": "e.g., WP ABC-1234",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "driverName",
+            "label": "Driver Name (Opt)",
+            "placeholder": "e.g. Kamal",
+            "type": "text"
+          },
+          {
+            "id": "phoneNumber",
+            "label": "Phone (Opt)",
+            "placeholder": "07x xxxxxxx",
+            "type": "tel"
+          },
+          {
+            "id": "rideDate",
+            "label": "Ride Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "rideTime",
+            "label": "Ride Time (Opt)",
+            "placeholder": "e.g., 14:30",
+            "type": "time"
+          },
+          {
+            "id": "fareAmount",
+            "label": "Fare Amount (Opt)",
+            "placeholder": "e.g., 500 LKR",
+            "type": "number"
+          },
+          {
+            "id": "route",
+            "label": "Route (Opt)",
+            "placeholder": "e.g., Colombo to Kandy",
+            "type": "text"
+          },
+          {
+            "id": "paymentMethod",
+            "label": "Payment Method (Opt)",
+            "placeholder": "e.g., Cash, Card, App Wallet",
+            "type": "text"
+          }
+        ],
+        "platforms": ["PickMe", "Uber", "Kangaroo", "TukTuk", "Street Hail", "Savari", "MrRider"],
+        "tags": {
+          "positive": [
+            "Clean Vehicle",
+            "Safe Driving",
+            "AC On",
+            "Polite Driver",
+            "Shortest Route",
+            "Fair Price",
+            "Returned Balance",
+            "English Speaking",
+            "On-Time Arrival",
+            "Helpful with Luggage",
+            "Smooth Ride",
+            "Good Music",
+            "Pet-Friendly",
+            "Child Seat Available"
+          ],
+          "negative": [
+            "Demanding Cash",
+            "Refused Card",
+            "High Traffic Route",
+            "Fuel Stop Delay",
+            "Driver Mismatch",
+            "Vehicle Mismatch",
+            "Phone While Driving",
+            "Rude/Aggressive",
+            "Modified Meter",
+            "No Balance Change",
+            "Sexual Harassment",
+            "Reckless Driving",
+            "Late Pickup",
+            "Dirty Vehicle",
+            "Overcharged Fare",
+            "Refused Destination",
+            "AC Not Working",
+            "Unsafe Overtaking",
+            "Smoking in Vehicle",
+            "Harassment Calls Later"
+          ]
+        }
+      }
+    },
+    {
+      "id": "online_seller",
+      "label": "Online Seller",
+      "icon": "shopping_bag",
+      "style": {
+        "colorClass": "text-blue-500 bg-blue-500/10 border-blue-500/20"
+      },
+      "form": {
+        "title": "Online Purchase",
+        "primaryInput": {
+          "label": "Page Name / Website / Link",
+          "placeholder": "e.g., FashionStore.lk or FB Link",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "orderId",
+            "label": "Order ID (Opt)",
+            "placeholder": "e.g., ORD123456",
+            "type": "text"
+          },
+          {
+            "id": "productName",
+            "label": "Product Name (Opt)",
+            "placeholder": "e.g., Smartphone Model X",
+            "type": "text"
+          },
+          {
+            "id": "purchaseDate",
+            "label": "Purchase Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "paymentMethod",
+            "label": "Payment Method (Opt)",
+            "placeholder": "e.g., Cash on Delivery, Card",
+            "type": "text"
+          },
+          {
+            "id": "sellerContact",
+            "label": "Seller Contact (Opt)",
+            "placeholder": "e.g., Phone or Email",
+            "type": "text"
+          }
+        ],
+        "platforms": ["Facebook", "Instagram", "Ikman.lk", "Daraz", "TikTok", "WhatsApp Group", "Kapruka", "Amazon (International)"],
+        "tags": {
+          "positive": [
+            "Fast Delivery",
+            "Item as Described",
+            "Good Packaging",
+            "Responsive",
+            "Genuine Product",
+            "Warranty Honored",
+            "Easy Returns",
+            "Discount Applied",
+            "Free Shipping",
+            "Quality Material",
+            "Timely Updates",
+            "Secure Payment"
+          ],
+          "negative": [
+            "No Delivery",
+            "Fake Item",
+            "Blocked Me",
+            "Damaged Item",
+            "Wrong Item",
+            "Cash on Delivery Scam",
+            "Hidden Charges",
+            "Delayed Shipping",
+            "Poor Customer Service",
+            "Counterfeit Brand",
+            "No Refund",
+            "Fake Reviews",
+            "Overpriced After Discount",
+            "Packaging Damage",
+            "Expired Product"
+          ]
+        }
+      }
+    },
+    {
+      "id": "phone_scam",
+      "label": "Phone/Spam",
+      "icon": "phone_locked",
+      "style": {
+        "colorClass": "text-red-500 bg-red-500/10 border-red-500/20"
+      },
+      "form": {
+        "title": "Phone / WhatsApp Report",
+        "primaryInput": {
+          "label": "Phone Number",
+          "placeholder": "e.g., 077 123 4567",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "callDate",
+            "label": "Call Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "callTime",
+            "label": "Call Time (Opt)",
+            "placeholder": "e.g., 14:30",
+            "type": "time"
+          },
+          {
+            "id": "callerName",
+            "label": "Caller Name (Opt)",
+            "placeholder": "e.g., If provided",
+            "type": "text"
+          },
+          {
+            "id": "scamDetails",
+            "label": "Scam Details (Opt)",
+            "placeholder": "e.g., Message content or script",
+            "type": "text"
+          }
+        ],
+        "platforms": ["WhatsApp", "Voice Call", "SMS", "Viber", "Telegram", "MyDialog", "Mobitel App"],
+        "tags": {
+          "positive": [
+            "Helpful Support Call",
+            "Legitimate Offer",
+            "Timely Notification"
+          ],
+          "negative": [
+            "Lottery Scam",
+            "Bank OTP Scam",
+            "Customs Gift Scam",
+            "Data Entry Job",
+            "Harassment",
+            "Wrong Number",
+            "Silent Call",
+            "Investment Fraud",
+            "Visa Scam",
+            "Fake Job Offer",
+            "Romance Scam",
+            "Parcel Delivery Fraud",
+            "Insurance Spam",
+            "Loan Scam",
+            "Crypto Investment",
+            "Matrimonial Fraud"
+          ]
+        }
+      }
+    },
+    {
+      "id": "business",
+      "label": "Business",
+      "icon": "store",
+      "style": {
+        "colorClass": "text-purple-500 bg-purple-500/10 border-purple-500/20"
+      },
+      "form": {
+        "title": "Business Review",
+        "primaryInput": {
+          "label": "Business Name",
+          "placeholder": "e.g., Downtown Cafe",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "location",
+            "label": "Location (Opt)",
+            "placeholder": "e.g., Colombo 07",
+            "type": "text"
+          },
+          {
+            "id": "visitDate",
+            "label": "Visit Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "productService",
+            "label": "Product/Service (Opt)",
+            "placeholder": "e.g., Coffee or Groceries",
+            "type": "text"
+          },
+          {
+            "id": "staffName",
+            "label": "Staff Name (Opt)",
+            "placeholder": "e.g., Cashier John",
+            "type": "text"
+          },
+          {
+            "id": "billAmount",
+            "label": "Bill Amount (Opt)",
+            "placeholder": "e.g., 1000 LKR",
+            "type": "number"
+          }
+        ],
+        "platforms": ["Keells Supermarket", "Cargills", "Arpico", "Local Shops"],
+        "tags": {
+          "positive": [
+            "Great Service",
+            "Tasty Food",
+            "Good Ambience",
+            "Value for Money",
+            "Clean Hygiene",
+            "Friendly Staff",
+            "Quick Checkout",
+            "Fresh Products",
+            "Wide Variety",
+            "Loyalty Rewards",
+            "Accessible Parking",
+            "Online Ordering"
+          ],
+          "negative": [
+            "Bad Service",
+            "Hidden Charges",
+            "Hygiene Issue",
+            "Rude Staff",
+            "Long Wait Time",
+            "Overpriced",
+            "Expired Goods",
+            "Crowded",
+            "Poor Quality",
+            "No Stock",
+            "Billing Errors",
+            "Unhelpful Management"
+          ]
+        }
+      }
+    },
+    {
+      "id": "freelancer",
+      "label": "Person/Pro",
+      "icon": "person",
+      "style": {
+        "colorClass": "text-green-500 bg-green-500/10 border-green-500/20"
+      },
+      "form": {
+        "title": "Person / Freelancer",
+        "primaryInput": {
+          "label": "Name / Service",
+          "placeholder": "e.g., Visa Consultant, Money Lender",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "serviceType",
+            "label": "Service Type (Opt)",
+            "placeholder": "e.g., Visa Application, Loan Processing",
+            "type": "text"
+          },
+          {
+            "id": "contractDate",
+            "label": "Contract Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "paymentAmount",
+            "label": "Payment Amount (Opt)",
+            "placeholder": "e.g., 50000 LKR",
+            "type": "number"
+          },
+          {
+            "id": "contactDetails",
+            "label": "Contact Details (Opt)",
+            "placeholder": "e.g., Phone or Email",
+            "type": "text"
+          }
+        ],
+        "platforms": ["Word of Mouth", "Facebook", "Recommendation", "Ikman.lk Jobs", "LinkedIn"],
+        "tags": {
+          "positive": [
+            "Professional",
+            "On Time",
+            "High Quality",
+            "Good Communication",
+            "Trustworthy",
+            "Affordable Rates",
+            "Creative Solutions",
+            "Repeat Business Worthy",
+            "Flexible Schedule",
+            "Expert Advice"
+          ],
+          "negative": [
+            "Fraud",
+            "Late Work",
+            "Ghosted",
+            "Bad Quality",
+            "Overcharged",
+            "Unprofessional",
+            "No Delivery",
+            "False Promises",
+            "Plagiarized Work",
+            "Poor Skills",
+            "Demand Extra Payment",
+            "Harassment"
+          ]
+        }
+      }
+    },
+    {
+      "id": "other",
+      "label": "Other",
+      "icon": "category",
+      "style": {
+        "colorClass": "text-gray-500 bg-gray-500/10 border-gray-500/20"
+      },
+      "form": {
+        "title": "General Review",
+        "primaryInput": {
+          "label": "Subject",
+          "placeholder": "What is this about?",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "incidentDate",
+            "label": "Incident Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "location",
+            "label": "Location (Opt)",
+            "placeholder": "e.g., Colombo",
+            "type": "text"
+          }
+        ],
+        "platforms": [],
+        "tags": {
+          "positive": [
+            "Good Experience",
+            "Helpful",
+            "Legit",
+            "Reliable",
+            "Efficient",
+            "Friendly"
+          ],
+          "negative": [
+            "Scam",
+            "Bad Experience",
+            "Waste of Time",
+            "Fraudulent",
+            "Unreliable",
+            "Poor Service"
+          ]
+        }
+      }
+    },
+    {
+      "id": "food_delivery",
+      "label": "Food Delivery",
+      "icon": "restaurant",
+      "style": {
+        "colorClass": "text-orange-500 bg-orange-500/10 border-orange-500/20"
+      },
+      "form": {
+        "title": "Food Delivery Experience",
+        "primaryInput": {
+          "label": "Restaurant Name or Order ID",
+          "placeholder": "e.g., KFC Colombo or Order #12345",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "deliveryPerson",
+            "label": "Delivery Person Name (Opt)",
+            "placeholder": "e.g., Ravi",
+            "type": "text"
+          },
+          {
+            "id": "orderDate",
+            "label": "Order Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "deliveryTime",
+            "label": "Delivery Time (Opt)",
+            "placeholder": "e.g., 45 minutes",
+            "type": "text"
+          },
+          {
+            "id": "orderAmount",
+            "label": "Order Amount (Opt)",
+            "placeholder": "e.g., 1500 LKR",
+            "type": "number"
+          }
+        ],
+        "platforms": ["PickMe Food", "Uber Eats", "Savari Food", "MrRider", "Kapruka", "Glovo", "Zomato (if available)"],
+        "tags": {
+          "positive": [
+            "Fast Delivery",
+            "Hot Food",
+            "Accurate Order",
+            "Polite Rider",
+            "Good Packaging",
+            "Fresh Ingredients",
+            "Value for Money",
+            "Timely Updates",
+            "No Spill",
+            "Extra Sauces Included"
+          ],
+          "negative": [
+            "Late Delivery",
+            "Cold Food",
+            "Wrong Order",
+            "Rude Rider",
+            "Damaged Packaging",
+            "Missing Items",
+            "Overpriced Delivery Fee",
+            "No Refund for Issues",
+            "Food Poisoning",
+            "Cancelled Without Notice",
+            "Poor Hygiene",
+            "Soggy Food"
+          ]
+        }
+      }
+    },
+    {
+      "id": "tourism",
+      "label": "Tourism/Attractions",
+      "icon": "beach_access",
+      "style": {
+        "colorClass": "text-teal-500 bg-teal-500/10 border-teal-500/20"
+      },
+      "form": {
+        "title": "Tourism Experience",
+        "primaryInput": {
+          "label": "Attraction/Hotel/Tour Name",
+          "placeholder": "e.g., Sigiriya Rock or Galle Fort Hotel",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "location",
+            "label": "Location (Opt)",
+            "placeholder": "e.g., Kandy",
+            "type": "text"
+          },
+          {
+            "id": "visitDate",
+            "label": "Visit Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "guideName",
+            "label": "Guide Name (Opt)",
+            "placeholder": "e.g., Tour Guide Saman",
+            "type": "text"
+          },
+          {
+            "id": "entryFee",
+            "label": "Entry Fee (Opt)",
+            "placeholder": "e.g., 3000 LKR",
+            "type": "number"
+          },
+          {
+            "id": "bookingMethod",
+            "label": "Booking Method (Opt)",
+            "placeholder": "e.g., Online, Agent",
+            "type": "text"
+          }
+        ],
+        "platforms": ["Sri Lanka Tourism", "Satopia Travel", "Rodrigo Tourism", "Golden Isle Travel", "TripAdvisor", "Airbnb"],
+        "tags": {
+          "positive": [
+            "Beautiful Views",
+            "Well-Maintained",
+            "Friendly Guides",
+            "Value for Money",
+            "Clean Facilities",
+            "Cultural Insights",
+            "Safe Environment",
+            "Comfortable Stay",
+            "Delicious Breakfast",
+            "Eco-Friendly",
+            "Unique Experiences",
+            "Good Amenities"
+          ],
+          "negative": [
+            "Overcrowded",
+            "Entry Fee Scam",
+            "Poor Maintenance",
+            "Rude Staff",
+            "Hidden Charges",
+            "Fake Guides",
+            "Unsafe Area",
+            "Dirty Rooms",
+            "Bad Food",
+            "No Hot Water",
+            "Overpriced Souvenirs",
+            "Tourist Trap",
+            "Visa Extension Fraud",
+            "Photo Scams"
+          ]
+        }
+      }
+    },
+    {
+      "id": "healthcare",
+      "label": "Healthcare",
+      "icon": "local_hospital",
+      "style": {
+        "colorClass": "text-pink-500 bg-pink-500/10 border-pink-500/20"
+      },
+      "form": {
+        "title": "Healthcare Review",
+        "primaryInput": {
+          "label": "Hospital/Doctor Name",
+          "placeholder": "e.g., Asiri Hospital or Dr. Silva",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "specialty",
+            "label": "Specialty (Opt)",
+            "placeholder": "e.g., Cardiology",
+            "type": "text"
+          },
+          {
+            "id": "visitDate",
+            "label": "Visit Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "department",
+            "label": "Department (Opt)",
+            "placeholder": "e.g., OPD, Emergency",
+            "type": "text"
+          },
+          {
+            "id": "patientId",
+            "label": "Patient ID (Opt)",
+            "placeholder": "e.g., PID12345",
+            "type": "text"
+          },
+          {
+            "id": "treatmentType",
+            "label": "Treatment Type (Opt)",
+            "placeholder": "e.g., Consultation, Surgery",
+            "type": "text"
+          }
+        ],
+        "platforms": ["Government Hospitals", "Private: Asiri, Nawaloka, Durdans, Lanka Hospitals", "Ayurveda Centers"],
+        "tags": {
+          "positive": [
+            "Quick Service",
+            "Expert Doctors",
+            "Clean Facility",
+            "Affordable Treatment",
+            "Friendly Nurses",
+            "Accurate Diagnosis",
+            "Modern Equipment",
+            "Short Wait Time",
+            "Good Follow-Up",
+            "Effective Medication"
+          ],
+          "negative": [
+            "Long Queues",
+            "Rude Staff",
+            "Overcharged",
+            "Misdiagnosis",
+            "Dirty Environment",
+            "Medicine Shortage",
+            "No Privacy",
+            "Corruption in Billing",
+            "Inadequate Care",
+            "Fake Doctors",
+            "Hygiene Issues",
+            "Emergency Delays"
+          ]
+        }
+      }
+    },
+    {
+      "id": "education",
+      "label": "Education",
+      "icon": "school",
+      "style": {
+        "colorClass": "text-indigo-500 bg-indigo-500/10 border-indigo-500/20"
+      },
+      "form": {
+        "title": "Education Review",
+        "primaryInput": {
+          "label": "School/Tutor/Class Name",
+          "placeholder": "e.g., Royal College or Math Tutor Priya",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "subject",
+            "label": "Subject/Level (Opt)",
+            "placeholder": "e.g., O/L Maths",
+            "type": "text"
+          },
+          {
+            "id": "classLevel",
+            "label": "Class Level (Opt)",
+            "placeholder": "e.g., Grade 10, A/L",
+            "type": "text"
+          },
+          {
+            "id": "sessionDate",
+            "label": "Session Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "fees",
+            "label": "Fees (Opt)",
+            "placeholder": "e.g., 2000 LKR per session",
+            "type": "number"
+          }
+        ],
+        "platforms": ["Government Schools", "Private Tutors", "International Schools", "Online Platforms like Akuru"],
+        "tags": {
+          "positive": [
+            "Excellent Teaching",
+            "Supportive Staff",
+            "Good Facilities",
+            "Affordable Fees",
+            "Interactive Classes",
+            "High Success Rate",
+            "Safe Environment",
+            "Extracurriculars",
+            "Timely Feedback",
+            "Qualified Teachers"
+          ],
+          "negative": [
+            "Poor Teaching",
+            "Overcrowded Classes",
+            "High Fees",
+            "Corruption in Admissions",
+            "Bullying Issues",
+            "Outdated Curriculum",
+            "No Discipline",
+            "Fake Certificates",
+            "Unqualified Tutors",
+            "Exam Leaks",
+            "Hygiene Problems"
+          ]
+        }
+      }
+    },
+    {
+      "id": "real_estate",
+      "label": "Real Estate/Rentals",
+      "icon": "home",
+      "style": {
+        "colorClass": "text-brown-500 bg-brown-500/10 border-brown-500/20"
+      },
+      "form": {
+        "title": "Real Estate Review",
+        "primaryInput": {
+          "label": "Property/Agent Name",
+          "placeholder": "e.g., Colombo Apartment or Lanka Property Web",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "location",
+            "label": "Location (Opt)",
+            "placeholder": "e.g., Borella",
+            "type": "text"
+          },
+          {
+            "id": "propertyType",
+            "label": "Property Type (Opt)",
+            "placeholder": "e.g., Apartment, House",
+            "type": "text"
+          },
+          {
+            "id": "agentName",
+            "label": "Agent Name (Opt)",
+            "placeholder": "e.g., Agent Ravi",
+            "type": "text"
+          },
+          {
+            "id": "rentPrice",
+            "label": "Rent/Price (Opt)",
+            "placeholder": "e.g., 100000 LKR",
+            "type": "number"
+          },
+          {
+            "id": "contractDate",
+            "label": "Contract Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          }
+        ],
+        "platforms": ["LankaPropertyWeb", "Ikman.lk Rentals", "Facebook Groups", "Agents like Carsons"],
+        "tags": {
+          "positive": [
+            "Good Location",
+            "Fair Price",
+            "Well-Maintained",
+            "Helpful Agent",
+            "Secure Building",
+            "Modern Amenities",
+            "Quick Paperwork",
+            "Pet-Friendly",
+            "Quiet Neighborhood",
+            "Good Views"
+          ],
+          "negative": [
+            "Fake Listings",
+            "Overpriced Rent",
+            "Hidden Fees",
+            "Poor Condition",
+            "Scam Agent",
+            "Fake Deeds",
+            "Eviction Issues",
+            "No Refund Deposit",
+            "Flooding Problems",
+            "Neighbor Disputes",
+            "Illegal Construction",
+            "Rental Fraud"
+          ]
+        }
+      }
+    },
+    {
+      "id": "telecom",
+      "label": "Telecom Services",
+      "icon": "wifi",
+      "style": {
+        "colorClass": "text-cyan-500 bg-cyan-500/10 border-cyan-500/20"
+      },
+      "form": {
+        "title": "Telecom Review",
+        "primaryInput": {
+          "label": "Provider Name",
+          "placeholder": "e.g., Dialog or Mobitel",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "serviceType",
+            "label": "Service Type (Opt)",
+            "placeholder": "e.g., Broadband",
+            "type": "text"
+          },
+          {
+            "id": "accountNumber",
+            "label": "Account Number (Opt)",
+            "placeholder": "e.g., ACC123456",
+            "type": "text"
+          },
+          {
+            "id": "issueDate",
+            "label": "Issue Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "planName",
+            "label": "Plan Name (Opt)",
+            "placeholder": "e.g., Unlimited Data",
+            "type": "text"
+          },
+          {
+            "id": "billAmount",
+            "label": "Bill Amount (Opt)",
+            "placeholder": "e.g., 2000 LKR",
+            "type": "number"
+          }
+        ],
+        "platforms": ["Dialog", "Mobitel", "SLT", "Airtel", "Hutch"],
+        "tags": {
+          "positive": [
+            "Strong Signal",
+            "Fast Internet",
+            "Good Customer Support",
+            "Affordable Plans",
+            "Reliable Connection",
+            "Easy Recharge",
+            "Bonus Data",
+            "Quick Installation",
+            "International Roaming",
+            "App-Friendly"
+          ],
+          "negative": [
+            "Poor Coverage",
+            "Slow Speed",
+            "Billing Errors",
+            "Rude Support",
+            "Hidden Charges",
+            "Frequent Outages",
+            "Data Throttling",
+            "No Refund",
+            "Spam Calls",
+            "Contract Traps",
+            "Installation Delays"
+          ]
+        }
+      }
+    },
+    {
+      "id": "banking",
+      "label": "Banking/Finance",
+      "icon": "account_balance",
+      "style": {
+        "colorClass": "text-gold-500 bg-gold-500/10 border-gold-500/20"
+      },
+      "form": {
+        "title": "Banking Review",
+        "primaryInput": {
+          "label": "Bank Name",
+          "placeholder": "e.g., Bank of Ceylon (BOC)",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "branch",
+            "label": "Branch (Opt)",
+            "placeholder": "e.g., Colombo Main",
+            "type": "text"
+          },
+          {
+            "id": "accountType",
+            "label": "Account Type (Opt)",
+            "placeholder": "e.g., Savings, Loan",
+            "type": "text"
+          },
+          {
+            "id": "transactionDate",
+            "label": "Transaction Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "loanAmount",
+            "label": "Loan Amount (Opt)",
+            "placeholder": "e.g., 100000 LKR",
+            "type": "number"
+          },
+          {
+            "id": "staffName",
+            "label": "Staff Name (Opt)",
+            "placeholder": "e.g., Officer Priya",
+            "type": "text"
+          }
+        ],
+        "platforms": ["BOC", "People's Bank", "Commercial Bank", "HNB", "Sampath Bank", "NSB", "Mobile Banking Apps"],
+        "tags": {
+          "positive": [
+            "Quick Transactions",
+            "Helpful Staff",
+            "Secure App",
+            "Low Fees",
+            "Good Interest Rates",
+            "Easy Loans",
+            "ATM Availability",
+            "Online Banking Smooth",
+            "Fast Approvals",
+            "Customer Rewards"
+          ],
+          "negative": [
+            "Long Queues",
+            "High Fees",
+            "App Crashes",
+            "Fraud Alerts Ignored",
+            "Loan Scams",
+            "Billing Disputes",
+            "Poor Support",
+            "Hidden Charges",
+            "Account Freezes",
+            "Fake Investment Offers",
+            "Corruption in Services"
+          ]
+        }
+      }
+    },
+    {
+      "id": "public_transport",
+      "label": "Public Transport",
+      "icon": "directions_bus",
+      "style": {
+        "colorClass": "text-bluegray-500 bg-bluegray-500/10 border-bluegray-500/20"
+      },
+      "form": {
+        "title": "Public Transport Review",
+        "primaryInput": {
+          "label": "Route or Vehicle ID",
+          "placeholder": "e.g., Bus Route 138 or Train to Kandy",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "journeyDate",
+            "label": "Journey Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "journeyTime",
+            "label": "Journey Time (Opt)",
+            "placeholder": "e.g., 08:00 AM",
+            "type": "time"
+          },
+          {
+            "id": "ticketNumber",
+            "label": "Ticket Number (Opt)",
+            "placeholder": "e.g., TKT12345",
+            "type": "text"
+          },
+          {
+            "id": "routeDetails",
+            "label": "Route Details (Opt)",
+            "placeholder": "e.g., From Colombo to Galle",
+            "type": "text"
+          },
+          {
+            "id": "conductorName",
+            "label": "Conductor/Driver Name (Opt)",
+            "placeholder": "e.g., Mr. Silva",
+            "type": "text"
+          }
+        ],
+        "platforms": ["SLTB Buses", "Private Buses", "Sri Lanka Railways", "Three-Wheelers"],
+        "tags": {
+          "positive": [
+            "On Time",
+            "Clean Vehicle",
+            "Safe Journey",
+            "Affordable Fare",
+            "Helpful Conductor",
+            "Comfortable Seats",
+            "Scenic Route",
+            "Air-Conditioned",
+            "Easy Ticketing",
+            "No Overcrowding"
+          ],
+          "negative": [
+            "Delayed",
+            "Overcrowded",
+            "Dirty Bus/Train",
+            "Reckless Driving",
+            "Overcharged Fare",
+            "Rude Staff",
+            "Breakdowns",
+            "No AC",
+            "Pickpocketing",
+            "Unsafe Conditions",
+            "Route Changes Without Notice"
+          ]
+        }
+      }
+    },
+    {
+      "id": "job_employment",
+      "label": "Job/Employment",
+      "icon": "work",
+      "style": {
+        "colorClass": "text-amber-500 bg-amber-500/10 border-amber-500/20"
+      },
+      "form": {
+        "title": "Job/Employment Review",
+        "primaryInput": {
+          "label": "Agency/Job Name",
+          "placeholder": "e.g., SLBFE or Overseas Job Offer",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "jobTitle",
+            "label": "Job Title (Opt)",
+            "placeholder": "e.g., Software Engineer",
+            "type": "text"
+          },
+          {
+            "id": "agencyContact",
+            "label": "Agency Contact (Opt)",
+            "placeholder": "e.g., Phone or Email",
+            "type": "text"
+          },
+          {
+            "id": "visaDetails",
+            "label": "Visa Details (Opt)",
+            "placeholder": "e.g., Work Visa Type",
+            "type": "text"
+          },
+          {
+            "id": "paymentMade",
+            "label": "Payment Made (Opt)",
+            "placeholder": "e.g., 50000 LKR",
+            "type": "number"
+          }
+        ],
+        "platforms": ["SLBFE", "Ikman.lk Jobs", "LinkedIn", "Facebook Groups", "Recruitment Agencies"],
+        "tags": {
+          "positive": [
+            "Legitimate Offer",
+            "Good Salary",
+            "Supportive Agency",
+            "Visa Processed Smoothly",
+            "Training Provided",
+            "Safe Work Environment",
+            "Timely Payments",
+            "Career Growth",
+            "Fair Contract"
+          ],
+          "negative": [
+            "Fake Job Scam",
+            "No Payment",
+            "Visa Fraud",
+            "Human Trafficking",
+            "Overworked",
+            "Agency Blocked",
+            "Hidden Fees",
+            "False Promises",
+            "Cyber Scam Centers",
+            "Contract Breach",
+            "Abroad Stranding"
+          ]
+        }
+      }
+    },
+    {
+      "id": "matrimonial",
+      "label": "Matrimonial/Dating",
+      "icon": "favorite",
+      "style": {
+        "colorClass": "text-rose-500 bg-rose-500/10 border-rose-500/20"
+      },
+      "form": {
+        "title": "Matrimonial/Dating Review",
+        "primaryInput": {
+          "label": "Site/Profile Name",
+          "placeholder": "e.g., LankaMatrimony or Dating App Profile",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "profileId",
+            "label": "Profile ID (Opt)",
+            "placeholder": "e.g., MAT12345",
+            "type": "text"
+          },
+          {
+            "id": "meetingDate",
+            "label": "Meeting Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "familyDetails",
+            "label": "Family Details (Opt)",
+            "placeholder": "e.g., If relevant",
+            "type": "text"
+          },
+          {
+            "id": "payment",
+            "label": "Payment (Opt)",
+            "placeholder": "e.g., Agency Fee 10000 LKR",
+            "type": "number"
+          }
+        ],
+        "platforms": ["LankaMatrimony", "Shaadi.com", "Facebook Dating", "Tinder", "Bumble"],
+        "tags": {
+          "positive": [
+            "Genuine Profile",
+            "Good Match",
+            "Respectful Interaction",
+            "Successful Marriage",
+            "Transparent Info",
+            "Safe Meeting"
+          ],
+          "negative": [
+            "Fake Profile",
+            "Money Scam",
+            "Catfishing",
+            "Harassment",
+            "Blocked After Payment",
+            "False Intentions",
+            "Blackmail",
+            "Identity Theft",
+            "Emotional Fraud",
+            "Agency Scam"
+          ]
+        }
+      }
+    },
+    {
+      "id": "utilities",
+      "label": "Utilities",
+      "icon": "bolt",
+      "style": {
+        "colorClass": "text-lime-500 bg-lime-500/10 border-lime-500/20"
+      },
+      "form": {
+        "title": "Utilities Review",
+        "primaryInput": {
+          "label": "Utility Provider",
+          "placeholder": "e.g., CEB Electricity or Water Board",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "accountNumber",
+            "label": "Account Number (Opt)",
+            "placeholder": "e.g., ACC123456",
+            "type": "text"
+          },
+          {
+            "id": "issueDate",
+            "label": "Issue Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "billAmount",
+            "label": "Bill Amount (Opt)",
+            "placeholder": "e.g., 5000 LKR",
+            "type": "number"
+          },
+          {
+            "id": "serviceArea",
+            "label": "Service Area (Opt)",
+            "placeholder": "e.g., Colombo District",
+            "type": "text"
+          }
+        ],
+        "platforms": ["CEB (Electricity)", "NWSDB (Water)", "SLT (Internet)"],
+        "tags": {
+          "positive": [
+            "Reliable Supply",
+            "Quick Repairs",
+            "Accurate Billing",
+            "Good Customer Service",
+            "Affordable Rates",
+            "Online Payments Easy"
+          ],
+          "negative": [
+            "Frequent Outages",
+            "High Bills",
+            "Delayed Repairs",
+            "Rude Staff",
+            "Corruption",
+            "Water Shortage",
+            "Billing Errors",
+            "No Notifications"
+          ]
+        }
+      }
+    },
+    {
+      "id": "investment",
+      "label": "Investment/Finance",
+      "icon": "trending_up",
+      "style": {
+        "colorClass": "text-emerald-500 bg-emerald-500/10 border-emerald-500/20"
+      },
+      "form": {
+        "title": "Investment Review",
+        "primaryInput": {
+          "label": "Scheme/Company Name",
+          "placeholder": "e.g., Crypto Investment or Stock Broker",
+          "required": true
+        },
+        "secondaryInputs": [
+          {
+            "id": "investmentAmount",
+            "label": "Investment Amount (Opt)",
+            "placeholder": "e.g., 100000 LKR",
+            "type": "number"
+          },
+          {
+            "id": "investmentDate",
+            "label": "Investment Date (Opt)",
+            "placeholder": "e.g., 2025-12-30",
+            "type": "date"
+          },
+          {
+            "id": "advisorName",
+            "label": "Advisor Name (Opt)",
+            "placeholder": "e.g., Broker John",
+            "type": "text"
+          },
+          {
+            "id": "schemeDetails",
+            "label": "Scheme Details (Opt)",
+            "placeholder": "e.g., Crypto Type or Stock Symbol",
+            "type": "text"
+          }
+        ],
+        "platforms": ["Local Brokers", "International Apps like Polygon", "CoinGecko", "Bank Investments"],
+        "tags": {
+          "positive": [
+            "Good Returns",
+            "Transparent",
+            "Secure Platform",
+            "Timely Payouts",
+            "Expert Advice",
+            "Low Fees"
+          ],
+          "negative": [
+            "Ponzi Scheme",
+            "No Returns",
+            "Fake App",
+            "Blocked Account",
+            "High-Risk Fraud",
+            "Investment Scam",
+            "False Guarantees",
+            "Regulatory Issues"
+          ]
+        }
+      }
+    }
+  ]
+}
