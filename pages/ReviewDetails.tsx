@@ -42,6 +42,14 @@ export const ReviewDetails = ({ review }: { review: Review }) => {
             showToast("Failed to vote", "error");
         }
     };
+    
+    const handleFlag = () => {
+        if (!currentUser) {
+            navigate('LOGIN');
+            return;
+        }
+        showToast("Review flagged for investigation.", "success");
+    };
 
     const handlePostComment = async () => {
         if (!currentUser) return;
@@ -67,9 +75,18 @@ export const ReviewDetails = ({ review }: { review: Review }) => {
                 showBack 
                 onBack={() => navigate('HOME')} 
                 rightAction={
-                    <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-slate-900 dark:text-white">
-                        <Icon name="share" size={20} />
-                    </button>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={handleFlag}
+                            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-colors"
+                            title="Flag as Fake"
+                        >
+                            <Icon name="flag" size={20} />
+                        </button>
+                        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-slate-900 dark:text-white transition-colors">
+                            <Icon name="share" size={20} />
+                        </button>
+                    </div>
                 }
             />
 

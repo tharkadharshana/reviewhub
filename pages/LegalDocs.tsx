@@ -9,32 +9,11 @@ export const LegalDocs = ({ docId }: { docId: string }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulating async load of markdown file
-        // In a real app with bundler, we might import/fetch the .md file
-        // Here we map the ID to the hardcoded text for the MVP
         setLoading(true);
         
-        // This simulates fetching the markdown content from the /docs folder structure
-        // Since we can't easily fetch local files in this environment, we use a mapping logic
-        // or a placeholder if the content service isn't fully linked to the file system.
-        
-        // For the purpose of this demo, we will render specific text based on ID
-        // In production this would be: fetch(`/docs/${docId}.md`).then(res => res.text())
-        
-        let text = "";
-        switch(docId) {
-            case 'TERMS': text = "ReviewHub Terms and Conditions..."; break;
-            case 'PRIVACY': text = "ReviewHub Privacy Policy..."; break;
-            case 'COMMUNITY': text = "Community Guidelines..."; break;
-            default: text = "Document not found.";
-        }
-        
-        // Simulating network delay for realism
+        // Simulating async load. In production, this fetches MD files.
         setTimeout(() => {
-            // In a real implementation, this would come from the Markdown files provided in /docs
-            // We are falling back to a generic message pointing to the file for this specific preview
-            // as we cannot effectively serve the static MD files without a server config change.
-            setContent(`Please refer to the file docs/${docId}.md for the full legal text.\n\n(In a production environment, the Markdown content would be rendered here.)`);
+            setContent(`Please refer to the file docs/${docId}.md for the full text.\n\n(In a production environment, the Markdown content would be rendered here.)`);
             setLoading(false);
         }, 300);
         

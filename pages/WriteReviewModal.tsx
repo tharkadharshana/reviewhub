@@ -23,6 +23,9 @@ export const WriteReviewModal = ({ onClose }: { onClose: () => void }) => {
     const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
     const [rating, setRating] = useState(0);
     const [description, setDescription] = useState('');
+    
+    // New: Good Faith Affirmation Checkbox
+    const [isAccurate, setIsAccurate] = useState(false);
 
     // Reset issues when rating changes significantly
     useEffect(() => {
@@ -53,6 +56,11 @@ export const WriteReviewModal = ({ onClose }: { onClose: () => void }) => {
     const handleSubmit = async () => {
         if (!entityName || rating === 0 || !selectedCategory || !currentUser) {
             showToast("Please fill in the required fields", "error");
+            return;
+        }
+
+        if (!isAccurate) {
+            showToast("You must confirm the review is accurate", "error");
             return;
         }
 
@@ -299,6 +307,25 @@ export const WriteReviewModal = ({ onClose }: { onClose: () => void }) => {
                         onChange={(e) => setDescription(e.target.value)} 
                     ></textarea>
                 </div>
+                
+                {/* 7. Good Faith Declaration (New) */}
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                        <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center transition-colors shrink-0 ${isAccurate ? 'bg-primary border-primary' : 'border-gray-500 group-hover:border-primary'}`}>
+                            {isAccurate && <Icon name="check" size={14} className="text-white font-bold" />}
+                        </div>
+                        <input 
+                            type="checkbox" 
+                            className="hidden"
+                            checked={isAccurate}
+                            onChange={(e) => setIsAccurate(e.target.checked)}
+                        />
+                        <div className="text-xs text-gray-400 leading-relaxed">
+                            I confirm this review is based on my genuine personal experience. I understand that posting false or malicious reviews is a violation of the <span className="text-primary hover:underline">Terms</span> and may result in account termination.
+                        </div>
+                    </label>
+                </div>
+
             </div>
         );
     };
@@ -338,8 +365,8 @@ export const WriteReviewModal = ({ onClose }: { onClose: () => void }) => {
                             variant="primary" 
                             onClick={handleSubmit} 
                             isLoading={isLoading}
-                            className="w-full text-base"
-                            disabled={!entityName || rating === 0}
+                            className={`w-full text-base ${!isAccurate ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={!entityName || rating === 0 || !isAccurate}
                         >
                             Submit Review
                         </Button>
