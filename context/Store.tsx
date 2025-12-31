@@ -63,13 +63,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         window.scrollTo(0, 0);
     };
 
-    const login = async () => {
-        // For demo, using hardcoded credential. In real app, modal handles input
+    const login = async (email?: string, pass?: string) => {
         try {
-            await api.auth.login("demo@reviewhub.com", "password123");
+            if (email && pass) {
+                await api.auth.login(email, pass);
+            } else {
+                // Fallback for demo flow
+                await api.auth.login("demo@reviewhub.com", "password123");
+            }
             showToast(`Welcome!`, 'success');
         } catch (e) {
-            showToast("Login failed", "error");
+            showToast("Login failed. Check credentials.", "error");
+            throw e;
+        }
+    };
+
+    const loginWithGoogle = async () => {
+        try {
+            await api.auth.loginWithGoogle();
+            showToast(`Welcome!`, 'success');
+        } catch (e) {
+            showToast("Google Sign-In failed", "error");
+            throw e;
         }
     };
 
@@ -96,6 +111,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             navigate,
             currentUser,
             login,
+            loginWithGoogle,
             logout,
             showToast,
             isDarkMode,

@@ -5,7 +5,9 @@ import {
     createUserWithEmailAndPassword, 
     signOut, 
     updateProfile,
-    onAuthStateChanged
+    onAuthStateChanged,
+    signInWithPopup,
+    GoogleAuthProvider
 } from 'firebase/auth';
 import { 
     collection, 
@@ -62,6 +64,22 @@ const timeAgo = (date: any) => {
     return "Just now";
 };
 
+// --- MOCK STORAGE FOR RATE LIMITING ---
+// In production, use Redis or Firestore
+const rateLimitCache: Record<string, number[]> = {};
+
+const checkRateLimit = (userId: string): boolean => {
+    const now = Date.now();
+    const timestamps = rateLimitCache[userId] || [];
+    // Filter timestamps from last 24 hours
+    const recent = timestamps.filter(t => now - t < 86400000);
+    
+    if (recent.length >= 5) return false; // Max 5 reviews per day
+    
+    rateLimitCache[userId] = [...recent, now];
+    return true;
+};
+
 // --- API SERVICE ---
 
 export const api: ApiService = {
@@ -93,6 +111,24 @@ export const api: ApiService = {
                         verified: false
                     };
                 }
+                throw error;
+            }
+        },
+        loginWithGoogle: async (): Promise<User> => {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const u = result.user;
+                return {
+                    id: u.uid,
+                    name: u.displayName || 'User',
+                    handle: u.email || '',
+                    email: u.email || '',
+                    avatar: u.photoURL || `https://ui-avatars.com/api/?name=${u.email}`,
+                    verified: false
+                };
+            } catch (error: any) {
+                console.error("Google login error", error);
                 throw error;
             }
         },
@@ -175,6 +211,7 @@ export const api: ApiService = {
                 // In a massive production app, you would create the indexes in Firebase Console and use server-side 'where' clauses.
                 
                 // Fetch more items to increase chance of finding matches after filtering
+                // Filter out hidden reviews
                 const q = query(reviewsRef, orderBy("timestamp", "desc"), limit(100));
 
                 const querySnapshot = await getDocs(q);
@@ -185,7 +222,7 @@ export const api: ApiService = {
                         id: doc.id,
                         date: timeAgo(data.timestamp)
                     } as Review;
-                });
+                }).filter(r => r.status !== 'hidden'); // Client-side enforcement of hidden content
 
                 // Client-side Filtering
                 if (filter === 'All') {
@@ -206,6 +243,28 @@ export const api: ApiService = {
         },
 
         create: async (data: Partial<Review>): Promise<Review> => {
+            // 1. Rate Limit Check
+            if (!checkRateLimit(data.user!.id)) {
+                throw new Error("Rate limit exceeded. Try again tomorrow.");
+            }
+
+            // 2. Duplicate Check (Mock implementation - in production use Firestore count)
+            // Skipped for MVP performance, relying on Rate Limit.
+
+            // 3. AI Toxicity Screening
+            let toxicity = 0;
+            if (data.text && data.text.length > 5 && process.env.API_KEY) {
+                try {
+                     toxicity = await api.ai.checkToxicity(data.text);
+                     if (toxicity > 0.7) {
+                         throw new Error("Review rejected: Content flagged as toxic or harmful.");
+                     }
+                } catch (e: any) {
+                    console.warn("AI Check failed, proceeding with caution", e);
+                    if (e.message.includes("Review rejected")) throw e;
+                }
+            }
+
             const newReview = {
                 entityName: data.entityName || 'Unknown',
                 entityType: data.entityType || 'General',
@@ -219,7 +278,10 @@ export const api: ApiService = {
                 tags: data.tags || [],
                 meta: data.meta || {}, 
                 isScam: data.isScam || false,
-                keywords: createKeywords(data.entityName || '') // For search
+                keywords: createKeywords(data.entityName || ''), // For search
+                status: 'active',
+                toxicityScore: toxicity,
+                verifiedBadge: data.user?.verified || false
             };
 
             const docRef = await addDoc(collection(db, "reviewhub"), newReview);
@@ -270,6 +332,16 @@ export const api: ApiService = {
                  id: d.id,
                  timeAgo: timeAgo(d.data().timestamp)
              })) as Comment[];
+        },
+
+        report: async (reviewId: string, reason: string): Promise<void> => {
+             // Create a flag document
+             await addDoc(collection(db, "reviewhub_flags"), {
+                 reviewId,
+                 reason,
+                 timestamp: serverTimestamp(),
+                 status: 'pending'
+             });
         }
     },
 
@@ -294,7 +366,7 @@ export const api: ApiService = {
                         id: doc.id,
                         date: timeAgo(data.timestamp)
                     } as Review;
-                });
+                }).filter(r => r.status !== 'hidden');
             } catch (e) {
                 console.error("Search failed", e);
                 return [];
@@ -317,6 +389,25 @@ export const api: ApiService = {
                 return response.text || "Unable to generate analysis.";
             } catch (error) {
                 return "AI Analysis failed temporarily.";
+            }
+        },
+        
+        checkToxicity: async (text: string): Promise<number> => {
+            // In a real app, this would call the Google Cloud Natural Language API or a fine-tuned model.
+            // Here, we use Gemini to estimate toxicity on a 0-1 scale.
+            if (!process.env.API_KEY) return 0;
+            
+            try {
+                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                const response = await ai.models.generateContent({
+                    model: 'gemini-3-flash-preview',
+                    contents: `Rate the toxicity of this text from 0.0 to 1.0 (1.0 being highly toxic/hate speech). Return ONLY the number. Text: "${text}"`,
+                });
+                const score = parseFloat(response.text?.trim() || "0");
+                return isNaN(score) ? 0 : score;
+            } catch (e) {
+                console.error("AI Toxicity Check failed", e);
+                return 0; // Fail open for MVP
             }
         }
     }

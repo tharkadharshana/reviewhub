@@ -28,6 +28,12 @@ export interface Review {
   tags?: string[]; // e.g., "High Risk", "Verified"
   isScam?: boolean;
   keywords?: string[]; // For search indexing
+  
+  // New Security/Moderation Fields
+  status?: 'active' | 'hidden' | 'flagged';
+  toxicityScore?: number;
+  verifiedBadge?: boolean; // True if user proved ownership/transaction
+  
   meta?: {
     platform?: string;
     identifier?: string; // Vehicle number, phone number, etc.
@@ -59,7 +65,8 @@ export interface AppContextType {
   viewData: any;
   navigate: (view: ViewState, data?: any) => void;
   currentUser: User | null;
-  login: () => Promise<void>;
+  login: (email?: string, pass?: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
   isDarkMode: boolean;
@@ -85,6 +92,7 @@ export interface Comment {
 export interface ApiService {
     auth: {
         login: (email: string, pass: string) => Promise<User>;
+        loginWithGoogle: () => Promise<User>;
         logout: () => Promise<void>;
         onStateChange: (callback: (user: User | null) => void) => () => void; // Returns unsubscribe function
         sendOtp: (phone: string) => Promise<boolean>;
@@ -99,11 +107,13 @@ export interface ApiService {
         vote: (reviewId: string, type: 'up' | 'down') => Promise<number>;
         addComment: (reviewId: string, text: string, user: User) => Promise<Comment>;
         getComments: (reviewId: string) => Promise<Comment[]>;
+        report: (reviewId: string, reason: string) => Promise<void>;
     };
     search: {
         query: (term: string) => Promise<Review[]>;
     };
     ai: {
         analyzeReview: (text: string, entity: string) => Promise<string>;
+        checkToxicity: (text: string) => Promise<number>;
     };
 }

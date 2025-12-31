@@ -14,6 +14,9 @@ export const ReviewDetails = ({ review }: { review: Review }) => {
     const [commentText, setCommentText] = useState('');
     const [isPosting, setIsPosting] = useState(false);
 
+    // Modal State
+    const [showReportModal, setShowReportModal] = useState(false);
+
     // Load comments on mount
     useEffect(() => {
         if(review?.id) {
@@ -43,12 +46,22 @@ export const ReviewDetails = ({ review }: { review: Review }) => {
         }
     };
     
-    const handleFlag = () => {
+    const handleFlagClick = () => {
         if (!currentUser) {
             navigate('LOGIN');
             return;
         }
-        showToast("Review flagged for investigation.", "success");
+        setShowReportModal(true);
+    };
+
+    const submitReport = async (reason: string) => {
+        try {
+            await api.reviews.report(review.id, reason);
+            showToast("Report submitted. We will investigate.", "success");
+            setShowReportModal(false);
+        } catch (e) {
+            showToast("Failed to report review.", "error");
+        }
     };
 
     const handlePostComment = async () => {
@@ -77,7 +90,7 @@ export const ReviewDetails = ({ review }: { review: Review }) => {
                 rightAction={
                     <div className="flex gap-2">
                         <button 
-                            onClick={handleFlag}
+                            onClick={handleFlagClick}
                             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-colors"
                             title="Flag as Fake"
                         >
@@ -120,7 +133,10 @@ export const ReviewDetails = ({ review }: { review: Review }) => {
                     <div className="flex items-center justify-between mb-5">
                         <div className="flex items-center gap-3">
                             <div className="relative">
-                                <img src={review.user.avatar} className="w-10 h-10 rounded-full bg-gray-200 object-cover" alt={review.user.name} />
+                                {/* Pseudonym Display for Anonymity */}
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${review.user.verified ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                                    {review.user.verified ? <Icon name="person" size={24} /> : 'A'}
+                                </div>
                                 {review.user.verified && (
                                     <div className="absolute -bottom-1 -right-1 bg-primary text-white rounded-full p-[2px] border-2 border-white dark:border-surface-dark flex items-center justify-center">
                                         <Icon name="check" size={10} className="font-bold" />
@@ -128,11 +144,15 @@ export const ReviewDetails = ({ review }: { review: Review }) => {
                                 )}
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-sm font-bold text-slate-900 dark:text-white">{review.user.name}</span>
-                                <span className="text-xs text-gray-500 font-medium">Reviewer stats: {review.user.stats?.reviews || 12} reviews</span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-white">
+                                    {review.user.verified ? review.user.name : 'Anonymous User'}
+                                </span>
+                                <span className="text-xs text-gray-500 font-medium">
+                                    {review.verifiedBadge ? 'Verified Owner' : review.user.stats ? `${review.user.stats.reviews} reviews` : 'Community Member'}
+                                </span>
                             </div>
                         </div>
-                        <Button variant="outline" className="!h-8 !px-3 !text-xs !rounded-lg">Follow</Button>
+                        {review.user.verified && <Button variant="outline" className="!h-8 !px-3 !text-xs !rounded-lg">Follow</Button>}
                     </div>
 
                     <div className="mb-5">
@@ -239,6 +259,29 @@ export const ReviewDetails = ({ review }: { review: Review }) => {
                     ))}
                 </section>
             </main>
+
+            {/* Report Modal */}
+            {showReportModal && (
+                <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-surface-dark w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-fade-in">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Report Review</h3>
+                        <div className="space-y-2 mb-6">
+                            {['Fake Review', 'Spam / Advertising', 'Harassment / Hate Speech', 'Private Information'].map(reason => (
+                                <button
+                                    key={reason}
+                                    onClick={() => submitReport(reason)}
+                                    className="w-full text-left px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 text-sm font-medium transition-colors"
+                                >
+                                    {reason}
+                                </button>
+                            ))}
+                        </div>
+                        <Button variant="ghost" onClick={() => setShowReportModal(false)} className="w-full">
+                            Cancel
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
