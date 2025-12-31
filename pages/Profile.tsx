@@ -1,10 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/Store';
-import { Icon, Button, ReviewCard } from '../components/Shared';
-import { reviews } from '../services/mockData';
+import { Icon, Button, ReviewCard, Skeleton } from '../components/Shared';
+import { api } from '../services/api';
+import { Review } from '../types';
 
 export const Profile = () => {
     const { navigate, currentUser, logout } = useApp();
+    const [myReviews, setMyReviews] = useState<Review[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [stats, setStats] = useState({ reviews: 0, votes: 0, rating: 0 });
+
+    useEffect(() => {
+        if (currentUser?.id) {
+            const fetchReviews = async () => {
+                setIsLoading(true);
+                try {
+                    const data = await api.reviews.getUserReviews(currentUser.id);
+                    setMyReviews(data);
+                    
+                    // Calculate stats
+                    const totalReviews = data.length;
+                    const totalVotes = data.reduce((acc, r) => acc + (r.likes || 0), 0);
+                    const avgRating = totalReviews > 0 
+                        ? (data.reduce((acc, r) => acc + (r.rating || 0), 0) / totalReviews).toFixed(1)
+                        : 0;
+
+                    setStats({
+                        reviews: totalReviews,
+                        votes: totalVotes,
+                        rating: Number(avgRating)
+                    });
+                } catch (e) {
+                    console.error("Failed to load user reviews");
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchReviews();
+        }
+    }, [currentUser]);
 
     // If no user is logged in, show Auth Wall
     if (!currentUser) {
@@ -21,7 +55,7 @@ export const Profile = () => {
     }
 
     return (
-        <div className="flex flex-col min-h-screen w-full bg-background-light dark:bg-background-dark pb-24">
+        <div className="flex flex-col min-h-screen w-full bg-background-light dark:bg-background-dark pb-24 animate-fade-in">
             <header className="sticky top-0 z-10 bg-white/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center px-4 py-3 justify-between">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">Profile</h2>
@@ -57,38 +91,53 @@ export const Profile = () => {
 
             <div className="grid grid-cols-3 divide-x divide-gray-200 dark:divide-gray-800 border-y border-gray-200 dark:border-gray-800 py-4 mb-4 bg-white dark:bg-surface-dark">
                 <div className="flex flex-col items-center">
-                    <span className="font-black text-xl text-slate-900 dark:text-white">{currentUser.stats?.reviews}</span>
+                    <span className="font-black text-xl text-slate-900 dark:text-white">{stats.reviews}</span>
                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Reviews</span>
                 </div>
                 <div className="flex flex-col items-center">
-                    <span className="font-black text-xl text-slate-900 dark:text-white">{currentUser.stats?.votes}</span>
+                    <span className="font-black text-xl text-slate-900 dark:text-white">{stats.votes}</span>
                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Impact</span>
                 </div>
                 <div className="flex flex-col items-center">
-                    <span className="font-black text-xl text-slate-900 dark:text-white">{currentUser.stats?.rating}</span>
+                    <span className="font-black text-xl text-slate-900 dark:text-white">{stats.rating}</span>
                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Rating</span>
                 </div>
             </div>
 
             <main className="flex flex-col px-4 gap-4">
-                 <h3 className="font-bold text-lg text-slate-900 dark:text-white">Recent Activity</h3>
-                 {reviews.slice(0, 2).map(r => (
-                     <ReviewCard 
-                        key={r.id}
-                        title={r.entityName}
-                        subtitle={r.entityType}
-                        rating={r.rating}
-                        text={r.text}
-                        date={r.date}
-                        avatar={r.user.avatar}
-                        likes={r.likes}
-                        comments={r.comments}
-                        tags={r.tags}
-                        isScam={r.isScam}
-                        imageUrl={r.images?.[0]}
-                        onClick={() => navigate('REVIEW_DETAILS', r)}
-                     />
-                 ))}
+                 <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">Recent Activity</h3>
+                    {myReviews.length > 0 && (
+                        <button onClick={() => navigate('MY_REVIEWS')} className="text-xs font-bold text-primary">View All</button>
+                    )}
+                 </div>
+                 
+                 {isLoading ? (
+                     [1, 2].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl" />)
+                 ) : myReviews.length > 0 ? (
+                     myReviews.slice(0, 3).map(r => (
+                         <ReviewCard 
+                            key={r.id}
+                            title={r.entityName}
+                            subtitle={r.entityType}
+                            rating={r.rating}
+                            text={r.text}
+                            date={r.date}
+                            avatar={r.user.avatar}
+                            likes={r.likes}
+                            comments={r.comments}
+                            tags={r.tags}
+                            isScam={r.isScam}
+                            imageUrl={r.images?.[0]}
+                            onClick={() => navigate('REVIEW_DETAILS', r)}
+                         />
+                     ))
+                 ) : (
+                     <div className="text-center py-8 text-gray-500">
+                         <p className="text-sm mb-4">You haven't posted any reviews yet.</p>
+                         <Button onClick={() => navigate('WRITE_REVIEW_MODAL')} variant="outline" className="w-auto mx-auto">Write Review</Button>
+                     </div>
+                 )}
             </main>
         </div>
     );

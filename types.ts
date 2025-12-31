@@ -103,6 +103,7 @@ export interface ApiService {
     };
     reviews: {
         getAll: (filter?: string) => Promise<Review[]>;
+        getUserReviews: (userId: string) => Promise<Review[]>;
         create: (data: Partial<Review>) => Promise<Review>;
         vote: (reviewId: string, type: 'up' | 'down') => Promise<number>;
         addComment: (reviewId: string, text: string, user: User) => Promise<Comment>;

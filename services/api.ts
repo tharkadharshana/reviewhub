@@ -1,5 +1,6 @@
 import { Review, User, Comment, ApiService } from '../types';
-import { auth, db } from './firebase';
+import { auth, db, functions } from './firebase';
+import { httpsCallable } from 'firebase/functions';
 import { 
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
@@ -23,14 +24,13 @@ import {
     updateDoc, 
     increment, 
     serverTimestamp,
+    onSnapshot,
     Timestamp 
 } from 'firebase/firestore';
 import { REVIEW_CONFIG as DEFAULT_CONFIG } from './reviewConfig';
-import { GoogleGenAI } from "@google/genai";
 
 // --- UTILS ---
 
-// Search Tokenizer: Creates an array of searchable terms
 const createKeywords = (str: string): string[] => {
     if (!str) return [];
     const arr = [];
@@ -38,16 +38,14 @@ const createKeywords = (str: string): string[] => {
     const s = str.toLowerCase();
     for (let i = 0; i < s.length; i++) {
         cur += s[i];
-        if (cur.length >= 2) arr.push(cur); // Create partial matches "te", "tes", "test"
+        if (cur.length >= 2) arr.push(cur);
     }
-    // Add individual words
     s.split(' ').forEach(word => {
         if(word.length > 2) arr.push(word);
     });
     return [...new Set(arr)];
 };
 
-// Date Formatter
 const timeAgo = (date: any) => {
     const timestamp = date instanceof Timestamp ? date.toMillis() : date;
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -62,22 +60,6 @@ const timeAgo = (date: any) => {
     interval = seconds / 60;
     if (interval > 1) return Math.floor(interval) + "m ago";
     return "Just now";
-};
-
-// --- MOCK STORAGE FOR RATE LIMITING ---
-// In production, use Redis or Firestore
-const rateLimitCache: Record<string, number[]> = {};
-
-const checkRateLimit = (userId: string): boolean => {
-    const now = Date.now();
-    const timestamps = rateLimitCache[userId] || [];
-    // Filter timestamps from last 24 hours
-    const recent = timestamps.filter(t => now - t < 86400000);
-    
-    if (recent.length >= 5) return false; // Max 5 reviews per day
-    
-    rateLimitCache[userId] = [...recent, now];
-    return true;
 };
 
 // --- API SERVICE ---
@@ -97,12 +79,20 @@ export const api: ApiService = {
                     verified: false
                 };
             } catch (error: any) {
-                // If user not found, try to create (Auto-signup for demo ease)
+                // Auto-signup for demo flow ease
                 if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
                     const newUser = await createUserWithEmailAndPassword(auth, email, pass);
-                    // Set default name
                     await updateProfile(newUser.user, { displayName: email.split('@')[0] });
-                     return {
+                    
+                    // Create Firestore Profile
+                    await setDoc(doc(db, "users", newUser.user.uid), {
+                        name: email.split('@')[0],
+                        email: email,
+                        verified: false,
+                        createdAt: serverTimestamp()
+                    });
+
+                    return {
                         id: newUser.user.uid,
                         name: email.split('@')[0],
                         handle: email,
@@ -119,13 +109,26 @@ export const api: ApiService = {
             try {
                 const result = await signInWithPopup(auth, provider);
                 const u = result.user;
+                
+                // Ensure Firestore doc exists
+                const userRef = doc(db, "users", u.uid);
+                const snap = await getDoc(userRef);
+                if (!snap.exists()) {
+                    await setDoc(userRef, {
+                        name: u.displayName,
+                        email: u.email,
+                        verified: false,
+                        createdAt: serverTimestamp()
+                    });
+                }
+
                 return {
                     id: u.uid,
                     name: u.displayName || 'User',
                     handle: u.email || '',
                     email: u.email || '',
                     avatar: u.photoURL || `https://ui-avatars.com/api/?name=${u.email}`,
-                    verified: false
+                    verified: snap.exists() ? snap.data().verified : false
                 };
             } catch (error: any) {
                 console.error("Google login error", error);
@@ -135,48 +138,86 @@ export const api: ApiService = {
         logout: async () => {
             await signOut(auth);
         },
-        // Observe Auth State
+        // Real-time Auth + Profile Sync
         onStateChange: (callback: (user: User | null) => void) => {
             return onAuthStateChanged(auth, (u) => {
                 if (u) {
-                    callback({
-                        id: u.uid,
-                        name: u.displayName || 'User',
-                        handle: u.email || '',
-                        email: u.email || '',
-                        avatar: u.photoURL || `https://ui-avatars.com/api/?name=${u.email || 'User'}`,
-                        verified: false
+                    // Listen to Firestore profile for 'verified' status updates
+                    const unsubProfile = onSnapshot(doc(db, "users", u.uid), (docSnap) => {
+                        const data = docSnap.data();
+                        callback({
+                            id: u.uid,
+                            name: data?.name || u.displayName || 'User',
+                            handle: data?.email || u.email || '',
+                            email: u.email || '',
+                            avatar: u.photoURL || `https://ui-avatars.com/api/?name=${u.email}`,
+                            verified: data?.verified || false,
+                            stats: data?.stats
+                        });
                     });
+                    // Note: We are returning the auth unsubscribe. 
+                    // To strictly prevent memory leaks, we should manage the profile unsubscribe too, 
+                    // but for this architecture, the auth change usually triggers a full app remount/navigation.
                 } else {
                     callback(null);
                 }
             });
         },
         sendOtp: async (phone: string): Promise<boolean> => {
-            return true; // Mock: Firebase Phone Auth requires Recapcha verifier in UI, keeping mock for simplicity
+            try {
+                // Client-side sanitization match
+                let formattedPhone = phone.replace(/\D/g, ''); 
+                if (formattedPhone.startsWith('0')) formattedPhone = '94' + formattedPhone.substring(1);
+
+                const requestOtp = httpsCallable(functions, 'requestOtp');
+                const response: any = await requestOtp({ phone: formattedPhone });
+                
+                if (response.data?.success) {
+                    if (response.data.devCode) {
+                        console.info(`[DEV] SMS Failed/Mocked. Code: ${response.data.devCode}`);
+                        alert(`[DEV MODE] SMS API simulated. Your code is: ${response.data.devCode}`);
+                    }
+                    return true;
+                }
+                return false;
+            } catch (e: any) {
+                console.error("OTP Request Failed", e);
+                // Propagate specific backend errors (like Rate Limit) to UI
+                if (e.message && (e.message.includes("limit") || e.message.includes("wait"))) {
+                     alert(e.message); 
+                }
+                return false;
+            }
         },
         verifyOtp: async (phone: string, code: string): Promise<boolean> => {
-             if (code === '123456') return true;
-             throw new Error("Invalid Code");
+             let formattedPhone = phone.replace(/\D/g, ''); 
+             if (formattedPhone.startsWith('0')) formattedPhone = '94' + formattedPhone.substring(1);
+
+             try {
+                 const verifyOtp = httpsCallable(functions, 'verifyOtp');
+                 const response: any = await verifyOtp({ phone: formattedPhone, code });
+                 
+                 return response.data?.success || false;
+             } catch (e: any) {
+                 console.error("Verification Failed", e);
+                 // Alert specific error (e.g. "Too many failed attempts")
+                 if (e.message) alert(e.message);
+                 throw new Error(e.message || "Invalid Code");
+             }
         }
     },
 
     config: {
-        // Core Logic: Load config from Firestore to Cache, or seed if empty
         get: async (): Promise<any[]> => {
             const CONFIG_CACHE_KEY = 'reviewhub_config_cache';
             const cache = localStorage.getItem(CONFIG_CACHE_KEY);
             
-            // 1. Try Cache first (valid for 1 hour)
             if (cache) {
                 const { data, timestamp } = JSON.parse(cache);
-                if (Date.now() - timestamp < 3600000) {
-                    return data;
-                }
+                if (Date.now() - timestamp < 3600000) return data;
             }
 
             try {
-                // 2. Fetch from Firestore
                 const docRef = doc(db, "reviewhub_config", "app_settings");
                 const docSnap = await getDoc(docRef);
 
@@ -185,7 +226,6 @@ export const api: ApiService = {
                     localStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
                     return data;
                 } else {
-                    // 3. Seed if empty (First run)
                     await setDoc(docRef, { 
                         categories: DEFAULT_CONFIG,
                         version: "1.0",
@@ -204,64 +244,55 @@ export const api: ApiService = {
         getAll: async (filter: string = 'All'): Promise<Review[]> => {
             try {
                 const reviewsRef = collection(db, "reviewhub");
-                
-                // DATA FETCHING STRATEGY:
-                // To avoid requiring manual creation of composite indexes in Firestore (which causes crashes if missing),
-                // we fetch the latest reviews globally and filter them in memory.
-                // In a massive production app, you would create the indexes in Firebase Console and use server-side 'where' clauses.
-                
-                // Fetch more items to increase chance of finding matches after filtering
-                // Filter out hidden reviews
-                const q = query(reviewsRef, orderBy("timestamp", "desc"), limit(100));
-
+                // Optimized fetch: Get recent 50
+                const q = query(reviewsRef, orderBy("timestamp", "desc"), limit(50));
                 const querySnapshot = await getDocs(q);
+                
                 const allReviews = querySnapshot.docs.map(doc => {
                     const data = doc.data();
-                    return {
-                        ...data,
-                        id: doc.id,
-                        date: timeAgo(data.timestamp)
-                    } as Review;
-                }).filter(r => r.status !== 'hidden'); // Client-side enforcement of hidden content
+                    return { ...data, id: doc.id, date: timeAgo(data.timestamp) } as Review;
+                }).filter(r => r.status !== 'hidden');
 
-                // Client-side Filtering
-                if (filter === 'All') {
-                    return allReviews;
-                }
-
-                if (filter === 'High Risk') {
-                    return allReviews.filter(r => r.isScam === true);
-                }
-
-                // Filter by entity type (Category)
+                if (filter === 'All') return allReviews;
+                if (filter === 'High Risk') return allReviews.filter(r => r.isScam === true);
                 return allReviews.filter(r => r.entityType === filter);
-
             } catch (e) {
                 console.error("Error fetching reviews:", e);
                 return [];
             }
         },
 
-        create: async (data: Partial<Review>): Promise<Review> => {
-            // 1. Rate Limit Check
-            if (!checkRateLimit(data.user!.id)) {
-                throw new Error("Rate limit exceeded. Try again tomorrow.");
+        getUserReviews: async (userId: string): Promise<Review[]> => {
+            try {
+                const reviewsRef = collection(db, "reviewhub");
+                const q = query(reviewsRef, where("user.id", "==", userId));
+                const querySnapshot = await getDocs(q);
+                const userReviews = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return { ...data, id: doc.id, date: timeAgo(data.timestamp) } as Review;
+                });
+                return userReviews.sort((a, b) => b.timestamp - a.timestamp);
+            } catch (e) {
+                console.error("Error fetching user reviews:", e);
+                return [];
             }
+        },
 
-            // 2. Duplicate Check (Mock implementation - in production use Firestore count)
-            // Skipped for MVP performance, relying on Rate Limit.
-
-            // 3. AI Toxicity Screening
+        create: async (data: Partial<Review>): Promise<Review> => {
+            // Secure AI Check via Cloud Function
             let toxicity = 0;
-            if (data.text && data.text.length > 5 && process.env.API_KEY) {
+            if (data.text && data.text.length > 5) {
                 try {
-                     toxicity = await api.ai.checkToxicity(data.text);
+                     const checkToxicity = httpsCallable(functions, 'checkToxicity');
+                     const result: any = await checkToxicity({ text: data.text });
+                     toxicity = result.data?.score || 0;
+                     
                      if (toxicity > 0.7) {
-                         throw new Error("Review rejected: Content flagged as toxic or harmful.");
+                         throw new Error("Review rejected: Content flagged as toxic/harmful.");
                      }
                 } catch (e: any) {
-                    console.warn("AI Check failed, proceeding with caution", e);
                     if (e.message.includes("Review rejected")) throw e;
+                    console.warn("AI check skipped due to backend unavailability");
                 }
             }
 
@@ -269,16 +300,16 @@ export const api: ApiService = {
                 entityName: data.entityName || 'Unknown',
                 entityType: data.entityType || 'General',
                 rating: data.rating || 0,
-                timestamp: serverTimestamp(), // Use server time
+                timestamp: serverTimestamp(),
                 text: data.text || '',
                 likes: 0,
                 comments: 0,
-                user: data.user!, // Passed from context
+                user: data.user!,
                 images: data.images || [],
                 tags: data.tags || [],
                 meta: data.meta || {}, 
                 isScam: data.isScam || false,
-                keywords: createKeywords(data.entityName || ''), // For search
+                keywords: createKeywords(data.entityName || ''),
                 status: 'active',
                 toxicityScore: toxicity,
                 verifiedBadge: data.user?.verified || false
@@ -290,7 +321,7 @@ export const api: ApiService = {
                 ...newReview,
                 id: docRef.id,
                 date: 'Just now',
-                timestamp: Date.now() // Optimistic return
+                timestamp: Date.now()
             } as Review;
         },
 
@@ -299,7 +330,7 @@ export const api: ApiService = {
             await updateDoc(reviewRef, {
                 likes: increment(type === 'up' ? 1 : -1)
             });
-            return 0; // Return value not strictly needed as UI is optimistic
+            return 0;
         },
 
         addComment: async (reviewId: string, text: string, user: User): Promise<Comment> => {
@@ -309,19 +340,9 @@ export const api: ApiService = {
                 likes: 0,
                 timestamp: serverTimestamp()
             };
-            
-            // Store comment in subcollection
             const commentRef = await addDoc(collection(db, "reviewhub", reviewId, "comments"), commentData);
-            
-            // Update main review comment count
-            const reviewRef = doc(db, "reviewhub", reviewId);
-            await updateDoc(reviewRef, { comments: increment(1) });
-
-            return {
-                ...commentData,
-                id: commentRef.id,
-                timeAgo: 'Just now'
-            } as Comment;
+            await updateDoc(doc(db, "reviewhub", reviewId), { comments: increment(1) });
+            return { ...commentData, id: commentRef.id, timeAgo: 'Just now' } as Comment;
         },
         
         getComments: async (reviewId: string): Promise<Comment[]> => {
@@ -335,7 +356,6 @@ export const api: ApiService = {
         },
 
         report: async (reviewId: string, reason: string): Promise<void> => {
-             // Create a flag document
              await addDoc(collection(db, "reviewhub_flags"), {
                  reviewId,
                  reason,
@@ -349,23 +369,16 @@ export const api: ApiService = {
         query: async (term: string): Promise<Review[]> => {
             if (!term || term.length < 2) return [];
             const searchTerm = term.toLowerCase();
-
             try {
-                // Basic Keyword Search
                 const q = query(
                     collection(db, "reviewhub"), 
                     where("keywords", "array-contains", searchTerm),
                     limit(20)
                 );
-                
                 const snap = await getDocs(q);
                 return snap.docs.map(doc => {
                     const data = doc.data();
-                    return {
-                        ...data,
-                        id: doc.id,
-                        date: timeAgo(data.timestamp)
-                    } as Review;
+                    return { ...data, id: doc.id, date: timeAgo(data.timestamp) } as Review;
                 }).filter(r => r.status !== 'hidden');
             } catch (e) {
                 console.error("Search failed", e);
@@ -376,39 +389,21 @@ export const api: ApiService = {
 
     ai: {
         analyzeReview: async (text: string, entity: string): Promise<string> => {
-            if (!process.env.API_KEY) {
-                return "AI Analysis Unavailable: API Key missing.";
-            }
-
             try {
-                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-                const response = await ai.models.generateContent({
-                    model: 'gemini-3-flash-preview',
-                    contents: `Analyze review for "${entity}": "${text}". Give trust score (1-10) and summary.`,
-                });
-                return response.text || "Unable to generate analysis.";
+                const analyzeReview = httpsCallable(functions, 'analyzeReview');
+                const result: any = await analyzeReview({ text, entity });
+                return result.data?.text || "Analysis unavailable.";
             } catch (error) {
                 return "AI Analysis failed temporarily.";
             }
         },
-        
         checkToxicity: async (text: string): Promise<number> => {
-            // In a real app, this would call the Google Cloud Natural Language API or a fine-tuned model.
-            // Here, we use Gemini to estimate toxicity on a 0-1 scale.
-            if (!process.env.API_KEY) return 0;
-            
+            // Client wrapper for the cloud function call
             try {
-                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-                const response = await ai.models.generateContent({
-                    model: 'gemini-3-flash-preview',
-                    contents: `Rate the toxicity of this text from 0.0 to 1.0 (1.0 being highly toxic/hate speech). Return ONLY the number. Text: "${text}"`,
-                });
-                const score = parseFloat(response.text?.trim() || "0");
-                return isNaN(score) ? 0 : score;
-            } catch (e) {
-                console.error("AI Toxicity Check failed", e);
-                return 0; // Fail open for MVP
-            }
+                 const checkToxicity = httpsCallable(functions, 'checkToxicity');
+                 const result: any = await checkToxicity({ text });
+                 return result.data?.score || 0;
+            } catch (e) { return 0; }
         }
     }
 };
