@@ -7,9 +7,6 @@ admin.initializeApp();
 const db = admin.firestore();
 
 // --- SECRETS CONFIGURATION ---
-// Best Practice: Store keys in Google Cloud Secret Manager
-// Run: firebase functions:secrets:set TEXT_LK_API_TOKEN
-// Run: firebase functions:secrets:set GEMINI_API_KEY
 const textLkToken = defineSecret("TEXT_LK_API_TOKEN");
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
@@ -20,7 +17,6 @@ const MAX_VERIFY_ATTEMPTS = 3;
 
 /**
  * Helper: Check Rate Limits
- * Enforces a daily limit per User ID to control costs.
  */
 async function checkUserRateLimit(uid) {
     const rateRef = db.collection("rate_limits").doc(uid);
@@ -30,7 +26,6 @@ async function checkUserRateLimit(uid) {
 
     let data = doc.data();
 
-    // If no record or 24 hours passed, reset
     if (!data || now > data.resetAt) {
         data = { count: 0, resetAt: now + ONE_DAY_MS };
     }
@@ -39,13 +34,11 @@ async function checkUserRateLimit(uid) {
         throw new HttpsError('resource-exhausted', `Daily SMS limit reached (${MAX_DAILY_SMS_PER_USER}). Try again in 24 hours.`);
     }
 
-    // Return the ref and data to update later only if SMS succeeds
     return { rateRef, data };
 }
 
 /**
  * 1. Secure OTP Request
- * Generates code server-side, stores in DB, sends SMS.
  */
 exports.requestOtp = onCall({ secrets: [textLkToken] }, async (request) => {
     // 1. Auth Check
@@ -56,16 +49,16 @@ exports.requestOtp = onCall({ secrets: [textLkToken] }, async (request) => {
     const rawPhone = request.data.phone;
     if (!rawPhone) throw new HttpsError("invalid-argument", "Phone number required");
 
-    // sanitize: ensure it starts with 94 and has 9 digits after
+    // Regex: Starts with 94, followed by 7, then 8 digits. Total 11 digits.
     const phoneRegex = /^947\d{8}$/;
     if (!phoneRegex.test(rawPhone)) {
         throw new HttpsError("invalid-argument", "Invalid format. Use 947XXXXXXXX.");
     }
 
-    // 3. Rate Limit Check (User Level)
+    // 3. Rate Limit Check
     const { rateRef, data: rateData } = await checkUserRateLimit(uid);
 
-    // 4. Cooldown Check (Phone Number Level)
+    // 4. Cooldown Check
     const otpRef = db.collection("otp_requests").doc(rawPhone);
     const otpDoc = await otpRef.get();
     
@@ -79,15 +72,14 @@ exports.requestOtp = onCall({ secrets: [textLkToken] }, async (request) => {
 
     // 5. Generate Logic
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 mins expiration
+    const expiresAt = Date.now() + 5 * 60 * 1000;
 
     try {
-        // 6. External API Call
-        const fetch = (await import("node-fetch")).default;
-        const token = textLkToken.value(); // Access Secret
+        const token = textLkToken.value();
         
         console.log(`[SECURE] Sending OTP to ${rawPhone}`);
 
+        // Use Node 18 native fetch
         const response = await fetch("https://app.text.lk/api/v3/sms/send", {
             method: "POST",
             headers: {
@@ -104,6 +96,12 @@ exports.requestOtp = onCall({ secrets: [textLkToken] }, async (request) => {
         });
 
         const result = await response.json();
+
+        // Check for provider errors specifically
+        if (result.status === "error" || (result.data && result.data.status === "fail")) {
+            console.error("Text.lk Provider Error:", JSON.stringify(result));
+            throw new HttpsError("unavailable", "SMS Provider Error: " + (result.message || "Unknown error"));
+        }
 
         // 7. Store Request & Update Rate Limit
         const batch = db.batch();
@@ -122,20 +120,13 @@ exports.requestOtp = onCall({ secrets: [textLkToken] }, async (request) => {
         });
 
         await batch.commit();
-        
-        if (result.status === "error" || (result.data && result.data.status === "fail")) {
-            console.error("Text.lk Provider Error:", result);
-            // In dev, you might choose to return the code, but in prod, keep it secure.
-            // For now, we return specific error info.
-            return { success: false, message: "SMS Provider Error. Please try again later." };
-        }
 
         return { success: true };
 
     } catch (e) {
         console.error("SMS Logic Error", e);
         if (e instanceof HttpsError) throw e;
-        throw new HttpsError("internal", "Failed to send SMS due to network error.");
+        throw new HttpsError("internal", "Failed to send SMS. " + e.message);
     }
 });
 

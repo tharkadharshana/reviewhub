@@ -132,6 +132,9 @@ export const api: ApiService = {
                 };
             } catch (error: any) {
                 console.error("Google login error", error);
+                if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+                     throw new Error("Popup blocked or closed. Please allow popups for this site.");
+                }
                 throw error;
             }
         },
@@ -155,9 +158,6 @@ export const api: ApiService = {
                             stats: data?.stats
                         });
                     });
-                    // Note: We are returning the auth unsubscribe. 
-                    // To strictly prevent memory leaks, we should manage the profile unsubscribe too, 
-                    // but for this architecture, the auth change usually triggers a full app remount/navigation.
                 } else {
                     callback(null);
                 }
@@ -173,18 +173,16 @@ export const api: ApiService = {
                 const response: any = await requestOtp({ phone: formattedPhone });
                 
                 if (response.data?.success) {
-                    if (response.data.devCode) {
-                        console.info(`[DEV] SMS Failed/Mocked. Code: ${response.data.devCode}`);
-                        alert(`[DEV MODE] SMS API simulated. Your code is: ${response.data.devCode}`);
-                    }
                     return true;
                 }
                 return false;
             } catch (e: any) {
                 console.error("OTP Request Failed", e);
                 // Propagate specific backend errors (like Rate Limit) to UI
-                if (e.message && (e.message.includes("limit") || e.message.includes("wait"))) {
+                if (e.message && (e.message.includes("limit") || e.message.includes("wait") || e.message.includes("format"))) {
                      alert(e.message); 
+                } else {
+                     alert("Failed to send SMS. Please try again later.");
                 }
                 return false;
             }
