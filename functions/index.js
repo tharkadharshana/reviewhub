@@ -15,6 +15,9 @@ const MAX_DAILY_SMS_PER_USER = 5;
 const SMS_COOLDOWN_SECONDS = 60;
 const MAX_VERIFY_ATTEMPTS = 3;
 
+// Fallback for development if secret is missing/not set in this environment
+const DEV_FALLBACK_TOKEN = "2725|pQw9fvkKFD4fCSElwxnOVwcF8SdB4b5mxIfxnGD7d2163fa2";
+
 /**
  * Helper: Check Rate Limits
  */
@@ -75,11 +78,17 @@ exports.requestOtp = onCall({ secrets: [textLkToken] }, async (request) => {
     const expiresAt = Date.now() + 5 * 60 * 1000;
 
     try {
-        const token = textLkToken.value();
+        // Dynamic import for node-fetch (ESM in CJS)
+        const fetch = (await import("node-fetch")).default;
         
+        let token = textLkToken.value();
+        if (!token || token === "undefined") {
+            console.warn("Secret TEXT_LK_API_TOKEN not found/set, using fallback token.");
+            token = DEV_FALLBACK_TOKEN;
+        }
+
         console.log(`[SECURE] Sending OTP to ${rawPhone}`);
 
-        // Use Node 18 native fetch
         const response = await fetch("https://app.text.lk/api/v3/sms/send", {
             method: "POST",
             headers: {
@@ -95,7 +104,15 @@ exports.requestOtp = onCall({ secrets: [textLkToken] }, async (request) => {
             })
         });
 
-        const result = await response.json();
+        // Handle non-JSON responses safely
+        const textResponse = await response.text();
+        let result;
+        try {
+            result = JSON.parse(textResponse);
+        } catch (e) {
+            console.error("Non-JSON response from SMS provider:", textResponse);
+            throw new Error("Invalid response from SMS provider");
+        }
 
         // Check for provider errors specifically
         if (result.status === "error" || (result.data && result.data.status === "fail")) {
