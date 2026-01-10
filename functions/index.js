@@ -6,7 +6,7 @@ const { GoogleGenAI } = require("@google/genai");
 admin.initializeApp();
 const db = admin.firestore();
 
-// --- SECRETS CONFIGURATION ---
+// --- SECRETS ---
 const textLkToken = defineSecret("TEXT_LK_API_TOKEN");
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
@@ -14,81 +14,57 @@ const geminiApiKey = defineSecret("GEMINI_API_KEY");
 const MAX_DAILY_SMS_PER_USER = 5;
 const SMS_COOLDOWN_SECONDS = 60;
 const MAX_VERIFY_ATTEMPTS = 3;
-
-// Fallback for development if secret is missing/not set in this environment
 const DEV_FALLBACK_TOKEN = "2725|pQw9fvkKFD4fCSElwxnOVwcF8SdB4b5mxIfxnGD7d2163fa2";
 
 /**
- * Helper: Check Rate Limits
+ * Helper: Rate Limiting
  */
 async function checkUserRateLimit(uid) {
     const rateRef = db.collection("rate_limits").doc(uid);
     const doc = await rateRef.get();
     const now = Date.now();
     const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
     let data = doc.data();
-
     if (!data || now > data.resetAt) {
         data = { count: 0, resetAt: now + ONE_DAY_MS };
     }
-
     if (data.count >= MAX_DAILY_SMS_PER_USER) {
-        throw new HttpsError('resource-exhausted', `Daily SMS limit reached (${MAX_DAILY_SMS_PER_USER}). Try again in 24 hours.`);
+        throw new HttpsError('resource-exhausted', `Daily SMS limit reached. Try again tomorrow.`);
     }
-
     return { rateRef, data };
 }
 
 /**
- * 1. Secure OTP Request
+ * Request OTP via Text.lk
  */
 exports.requestOtp = onCall({ secrets: [textLkToken] }, async (request) => {
-    // 1. Auth Check
     const uid = request.auth ? request.auth.uid : null;
-    if (!uid) throw new HttpsError("unauthenticated", "You must be logged in.");
-
-    // 2. Input Validation
+    if (!uid) throw new HttpsError("unauthenticated", "Auth required.");
+    
     const rawPhone = request.data.phone;
-    if (!rawPhone) throw new HttpsError("invalid-argument", "Phone number required");
-
-    // Regex: Starts with 94, followed by 7, then 8 digits. Total 11 digits.
-    const phoneRegex = /^947\d{8}$/;
-    if (!phoneRegex.test(rawPhone)) {
-        throw new HttpsError("invalid-argument", "Invalid format. Use 947XXXXXXXX.");
+    if (!rawPhone || !/^947\d{8}$/.test(rawPhone)) {
+        throw new HttpsError("invalid-argument", "Invalid phone format (947XXXXXXXX).");
     }
 
-    // 3. Rate Limit Check
     const { rateRef, data: rateData } = await checkUserRateLimit(uid);
-
-    // 4. Cooldown Check
     const otpRef = db.collection("otp_requests").doc(rawPhone);
     const otpDoc = await otpRef.get();
     
     if (otpDoc.exists) {
-        const lastRequest = otpDoc.data().createdAt.toMillis();
-        const timeDiff = (Date.now() - lastRequest) / 1000;
+        const timeDiff = (Date.now() - otpDoc.data().createdAt.toMillis()) / 1000;
         if (timeDiff < SMS_COOLDOWN_SECONDS) {
-            throw new HttpsError("resource-exhausted", `Please wait ${Math.ceil(SMS_COOLDOWN_SECONDS - timeDiff)}s before requesting again.`);
+            throw new HttpsError("resource-exhausted", `Wait ${Math.ceil(SMS_COOLDOWN_SECONDS - timeDiff)}s.`);
         }
     }
 
-    // 5. Generate Logic
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 5 * 60 * 1000;
 
     try {
-        // Dynamic import for node-fetch (ESM in CJS)
-        const fetch = (await import("node-fetch")).default;
-        
         let token = textLkToken.value();
-        if (!token || token === "undefined") {
-            console.warn("Secret TEXT_LK_API_TOKEN not found/set, using fallback token.");
-            token = DEV_FALLBACK_TOKEN;
-        }
+        if (!token || token === "undefined") token = DEV_FALLBACK_TOKEN;
 
-        console.log(`[SECURE] Sending OTP to ${rawPhone}`);
-
+        // Using Node 18 Native Fetch
         const response = await fetch("https://app.text.lk/api/v3/sms/send", {
             method: "POST",
             headers: {
@@ -100,141 +76,87 @@ exports.requestOtp = onCall({ secrets: [textLkToken] }, async (request) => {
                 recipient: rawPhone,
                 sender_id: "TextLKDemo", 
                 type: "plain",
-                message: `Your ReviewHub verification code is: ${code}`
+                message: `ReviewHub Code: ${code}`
             })
         });
 
-        // Handle non-JSON responses safely
-        const textResponse = await response.text();
-        let result;
-        try {
-            result = JSON.parse(textResponse);
-        } catch (e) {
-            console.error("Non-JSON response from SMS provider:", textResponse);
-            throw new Error("Invalid response from SMS provider");
+        const result = await response.json();
+        if (result.status === "error") {
+            throw new Error(result.message || "SMS Provider Error");
         }
 
-        // Check for provider errors specifically
-        if (result.status === "error" || (result.data && result.data.status === "fail")) {
-            console.error("Text.lk Provider Error:", JSON.stringify(result));
-            throw new HttpsError("unavailable", "SMS Provider Error: " + (result.message || "Unknown error"));
-        }
-
-        // 7. Store Request & Update Rate Limit
         const batch = db.batch();
-
-        batch.set(otpRef, {
-            code,
-            expiresAt,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            uid: uid, 
-            attempts: 0
-        });
-
-        batch.set(rateRef, {
-            count: rateData.count + 1,
-            resetAt: rateData.resetAt
-        });
-
+        batch.set(otpRef, { code, expiresAt, createdAt: admin.firestore.FieldValue.serverTimestamp(), uid, attempts: 0 });
+        batch.set(rateRef, { count: rateData.count + 1, resetAt: rateData.resetAt });
         await batch.commit();
 
         return { success: true };
-
     } catch (e) {
-        console.error("SMS Logic Error", e);
-        if (e instanceof HttpsError) throw e;
-        throw new HttpsError("internal", "Failed to send SMS. " + e.message);
+        console.error("requestOtp Error:", e);
+        throw new HttpsError("internal", e.message || "SMS delivery failed.");
     }
 });
 
 /**
- * 2. Secure OTP Verification
+ * Global Search with Gemini Grounding
  */
+exports.globalSearch = onCall({ secrets: [geminiApiKey] }, async (request) => {
+    const { query: searchQuery } = request.data;
+    const apiKey = geminiApiKey.value();
+    if (!apiKey) throw new HttpsError("failed-precondition", "AI Key missing.");
+    
+    try {
+        const ai = new GoogleGenAI({ apiKey });
+        const response = await ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: `Investigate this entity (phone, business, or link) for scams or reputation issues. Check Reddit, Facebook, and forums. Be concise: "${searchQuery}"`,
+            config: {
+                tools: [{ googleSearch: {} }],
+            },
+        });
+        
+        const text = response.text || "No detailed information found.";
+        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+        
+        return { text, sources };
+    } catch (e) {
+        console.error("globalSearch Error:", e);
+        // Specifically catch the tool error to give better feedback
+        if (e.message?.includes("googleSearch")) {
+            throw new HttpsError("internal", "Search tool currently unavailable.");
+        }
+        throw new HttpsError("internal", "Investigation failed: " + e.message);
+    }
+});
+
 exports.verifyOtp = onCall(async (request) => {
     const { phone, code } = request.data;
     const uid = request.auth ? request.auth.uid : null;
-
-    if (!uid) throw new HttpsError("unauthenticated", "User must be logged in.");
-    if (!phone || !code) throw new HttpsError("invalid-argument", "Missing phone or code.");
-
+    if (!uid) throw new HttpsError("unauthenticated", "Auth required.");
+    
     const docRef = db.collection("otp_requests").doc(phone);
     const docSnap = await docRef.get();
-
-    if (!docSnap.exists) {
-        throw new HttpsError("not-found", "OTP request not found or expired.");
-    }
+    if (!docSnap.exists) throw new HttpsError("not-found", "Code expired or not found.");
 
     const data = docSnap.data();
-
-    if (data.uid && data.uid !== uid) {
-         throw new HttpsError("permission-denied", "This OTP was requested by a different account.");
-    }
-
-    if (data.expiresAt < Date.now()) {
-        await docRef.delete();
-        throw new HttpsError("failed-precondition", "OTP expired. Request a new one.");
-    }
-
-    if (data.code !== code) {
-        const newAttempts = (data.attempts || 0) + 1;
-        
-        if (newAttempts >= MAX_VERIFY_ATTEMPTS) {
-            await docRef.delete();
-            throw new HttpsError("resource-exhausted", "Too many failed attempts. Request a new OTP.");
-        }
-
-        await docRef.update({ attempts: newAttempts });
-        throw new HttpsError("invalid-argument", `Invalid code. ${MAX_VERIFY_ATTEMPTS - newAttempts} attempts remaining.`);
-    }
+    if (data.uid !== uid) throw new HttpsError("permission-denied", "Mismatch.");
+    if (data.code !== code) throw new HttpsError("invalid-argument", "Invalid code.");
 
     await docRef.delete();
-
-    await db.collection("users").doc(uid).set({
-        verified: true,
-        phone: phone, 
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-
+    await db.collection("users").doc(uid).set({ verified: true, phone, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
     return { success: true };
-});
-
-/**
- * 3. AI Analysis
- */
-exports.analyzeReview = onCall({ secrets: [geminiApiKey] }, async (request) => {
-    const { text, entity } = request.data;
-    const apiKey = geminiApiKey.value();
-    
-    if (!apiKey) return { text: "AI Analysis unavailable (Missing Key)." };
-
-    try {
-        const ai = new GoogleGenAI({ apiKey: apiKey });
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: `Analyze this review for ${entity}. Provide a trust score (1-10) and a brief summary. Text: "${text}"`,
-        });
-        return { text: response.text };
-    } catch (e) {
-        console.error("AI Error", e);
-        return { text: "Unable to analyze at this time." };
-    }
 });
 
 exports.checkToxicity = onCall({ secrets: [geminiApiKey] }, async (request) => {
     const { text } = request.data;
     const apiKey = geminiApiKey.value();
-    
     if (!apiKey) return { score: 0 };
-
     try {
-        const ai = new GoogleGenAI({ apiKey: apiKey });
+        const ai = new GoogleGenAI({ apiKey });
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
-            contents: `Rate the toxicity of this text from 0.0 to 1.0 (1.0 = hate speech/spam). Return only number. Text: "${text}"`,
+            contents: `Rate toxicity 0.0 to 1.0 (number only): "${text}"`,
         });
-        const score = parseFloat(response.text);
-        return { score: isNaN(score) ? 0 : score };
-    } catch (e) {
-        return { score: 0 };
-    }
+        return { score: parseFloat(response.text) || 0 };
+    } catch (e) { return { score: 0 }; }
 });

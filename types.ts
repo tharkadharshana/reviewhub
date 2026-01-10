@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   name: string;
@@ -15,28 +16,25 @@ export interface User {
 export interface Review {
   id: string;
   entityName: string;
-  entityType?: string; // e.g., "Ride Share", "Online Seller"
+  entityType?: string;
   rating: number;
-  date: string; // Relative string for UI e.g., "2h ago"
-  timestamp: number; // For sorting
+  date: string;
+  timestamp: number;
   distance?: string;
   text: string;
   images?: string[];
   likes: number;
   comments: number;
   user: User;
-  tags?: string[]; // e.g., "High Risk", "Verified"
+  tags?: string[];
   isScam?: boolean;
-  keywords?: string[]; // For search indexing
-  
-  // New Security/Moderation Fields
+  keywords?: string[];
   status?: 'active' | 'hidden' | 'flagged';
   toxicityScore?: number;
-  verifiedBadge?: boolean; // True if user proved ownership/transaction
-  
+  verifiedBadge?: boolean;
   meta?: {
     platform?: string;
-    identifier?: string; // Vehicle number, phone number, etc.
+    identifier?: string;
     issueType?: string;
     [key: string]: any;
   };
@@ -86,15 +84,12 @@ export interface Comment {
     timestamp?: number;
 }
 
-// --- ARCHITECTURE INTERFACE ---
-// This interface decouples the UI from Firebase. 
-// To migrate to AWS, implement this interface in a new service file.
 export interface ApiService {
     auth: {
         login: (email: string, pass: string) => Promise<User>;
         loginWithGoogle: () => Promise<User>;
         logout: () => Promise<void>;
-        onStateChange: (callback: (user: User | null) => void) => () => void; // Returns unsubscribe function
+        onStateChange: (callback: (user: User | null) => void) => () => void;
         sendOtp: (phone: string) => Promise<boolean>;
         verifyOtp: (phone: string, code: string) => Promise<boolean>;
     };
@@ -116,5 +111,6 @@ export interface ApiService {
     ai: {
         analyzeReview: (text: string, entity: string) => Promise<string>;
         checkToxicity: (text: string) => Promise<number>;
+        globalSearch: (query: string) => Promise<{ text: string, sources: any[] }>;
     };
 }
