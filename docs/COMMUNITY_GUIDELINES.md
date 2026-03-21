@@ -1,5 +1,5 @@
 # ReviewHub Community Guidelines
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 These Guidelines ensure a safe, respectful environment for all users, aligned with human rights (e.g., freedom of expression, non-discrimination) and Sri Lankan laws. Violations may lead to content removal, account suspension, or bans.
 

@@ -1,5 +1,5 @@
 # ReviewHub DMCA Policy
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 ReviewHub respects intellectual property and complies with the U.S. Digital Millennium Copyright Act (DMCA) and Sri Lankan copyright laws. This policy outlines how to report infringements.
 

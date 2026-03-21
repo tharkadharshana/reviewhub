@@ -1,5 +1,5 @@
 # ReviewHub Terms and Conditions
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 Welcome to ReviewHub, a community-driven review and reporting platform operated by [Your Company Name], a company registered in Sri Lanka ("we," "us," or "our"). These Terms and Conditions ("Terms") govern your access to and use of our website, mobile applications, and services (collectively, the "Service"). By creating an account, accessing, or using the Service, you agree to be bound by these Terms, our Privacy Policy, Community Guidelines, and any other policies referenced herein. If you do not agree, you must not use the Service.
 

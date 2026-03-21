@@ -1,6 +1,6 @@
 export const LEGAL_CONTENT = {
     TERMS: `# ReviewHub Terms and Conditions
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 Welcome to ReviewHub, a community-driven review and reporting platform operated by [Your Company Name], a company registered in Sri Lanka ("we," "us," or "our"). These Terms and Conditions ("Terms") govern your access to and use of our website, mobile applications, and services (collectively, the "Service"). By creating an account, accessing, or using the Service, you agree to be bound by these Terms, our Privacy Policy, Community Guidelines, and any other policies referenced herein. If you do not agree, you must not use the Service.
 
@@ -58,7 +58,7 @@ You must be at least 18 years old or the age of majority in your jurisdiction to
 - Contact: [Your Contact Email/Address].`,
 
     PRIVACY: `# ReviewHub Privacy Policy
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 At ReviewHub, we respect your privacy and are committed to protecting your personal data in compliance with Sri Lanka's Personal Data Protection Act No. 9 of 2022 (PDPA), international standards like GDPR (where applicable), and human rights principles. This Privacy Policy explains how we collect, use, disclose, and protect your information when you use our Service.
 
@@ -110,7 +110,7 @@ We collect data with your consent (e.g., during signup) or as necessary for the 
 - Questions: [Your Email]. For PDPA compliance, we appoint a Data Protection Officer.`,
 
     COMMUNITY: `# ReviewHub Community Guidelines
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 These Guidelines ensure a safe, respectful environment for all users, aligned with human rights (e.g., freedom of expression, non-discrimination) and Sri Lankan laws. Violations may lead to content removal, account suspension, or bans.
 
@@ -138,7 +138,7 @@ These Guidelines ensure a safe, respectful environment for all users, aligned wi
 Follow these for a positive community.`,
 
     DMCA: `# ReviewHub DMCA Policy
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 ReviewHub respects intellectual property and complies with the U.S. Digital Millennium Copyright Act (DMCA) and Sri Lankan copyright laws. This policy outlines how to report infringements.
 
@@ -155,14 +155,14 @@ ReviewHub respects intellectual property and complies with the U.S. Digital Mill
 False claims may lead to liability.`,
 
     DISCLAIMER: `# ReviewHub Disclaimer
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 The information on ReviewHub, including User Content, is for general purposes only. We make no representations about accuracy, completeness, or suitability. Use at your own risk.
 
 We disclaim all warranties and liability for losses arising from the Service or User Content, including indirect damages. This does not affect non-waivable rights under Sri Lankan consumer laws.`,
 
     COOKIE: `# ReviewHub Cookie Policy
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 Cookies are small files stored on your device. We use:
 
@@ -185,7 +185,7 @@ For details, see Privacy Policy. Contact for questions.`,
 Based on ReviewHub's "verified anonymity" model, the key risks include defamation liability, privacy breaches, abuse, trust erosion, and human rights conflicts. Below are the practical steps integrated into our system to mitigate these.
 
 ## 1. Mitigating Defamation and Legal Risks
-- **Proactive Content Screening**: AI scans reviews pre-posting for defamatory language.
+- **Proactive Content Screening**: We are actively developing systems to scan reviews pre-posting for defamatory language.
 - **Clear Disclaimers**: Reviews are labeled as user opinions.
 - **Identity Disclosure**: Data is only disclosed under strict court order.
 
@@ -210,7 +210,7 @@ Fake reviews undermine trust. ReviewHub implements a multi-layered system to com
 - **Affirmation**: Users are required to check a "Good Faith" declaration.
 
 ## 2. Detection Technologies
-- **AI Analysis**: We use machine learning to detect bot-like patterns.
+- **Pattern Analysis**: We monitor for duplicate text and bot-like patterns.
 - **Community Reporting**: A "Flag as Fake" button enables community policing.
 
 ## 3. Incentives for Genuine Content

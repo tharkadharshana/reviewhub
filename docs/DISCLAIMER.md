@@ -1,5 +1,5 @@
 # ReviewHub Disclaimer
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 The information on ReviewHub, including User Content, is for general purposes only. We make no representations about accuracy, completeness, or suitability. Use at your own risk.
 

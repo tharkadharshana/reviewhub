@@ -1,5 +1,5 @@
 # ReviewHub Cookie Policy
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 Cookies are small files stored on your device. We use:
 

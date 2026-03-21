@@ -1,5 +1,5 @@
 # ReviewHub Privacy Policy
-**Effective Date: December 30, 2025**
+**Effective Date: March 21, 2026**
 
 At ReviewHub, we respect your privacy and are committed to protecting your personal data in compliance with Sri Lanka's Personal Data Protection Act No. 9 of 2022 (PDPA), international standards like GDPR (where applicable), and human rights principles. This Privacy Policy explains how we collect, use, disclose, and protect your information when you use our Service.
 

@@ -8,7 +8,7 @@ Fake reviews undermine trust. ReviewHub implements a multi-layered system to com
 - **Affirmation**: Users are required to check a "Good Faith" declaration before submitting.
 
 ## 2. Detection Technologies
-- **AI Analysis**: We use machine learning to detect sentiment anomalies, duplicate text, and bot-like patterns.
+- **Pattern Analysis**: We monitor for duplicate text and bot-like patterns.
 - **Community Reporting**: A "Flag as Fake" button allows the community to signal suspicious content for investigation.
 
 ## 3. Incentives for Genuine Content

@@ -24,6 +24,8 @@
 *   [**Migration_Guide.md**](./MIGRATION_GUIDE.md) - **Critical:** How to move from Firebase to AWS/Self-Hosted.
 *   [**Best_Practices.md**](./BEST_PRACTICES.md) - Coding standards, UI/UX guidelines, and performance tips.
 *   [**Troubleshooting.md**](./TROUBLESHOOTING.md) - Error handling and common issues.
+*   [**Contributing.md**](../CONTRIBUTING.md) - How to contribute to ReviewHub.
+*   [**Changelog.md**](../CHANGELOG.md) - Notable changes to the project.
 
 ## 🛠 Tech Stack
 

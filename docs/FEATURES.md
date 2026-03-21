@@ -27,4 +27,5 @@
 *   **History:** "My Reviews" section to manage past submissions.
 
 ## 6. AI Integration
-*   **Gemini Analysis:** The system can analyze review text to generate a "Trust Score" and summary (via `api.ai.analyzeReview`).
+*   **Toxicity Checking:** The system analyzes review text to prevent toxic or harmful content from being posted.
+*   **Global Search:** AI-powered search to investigate entities (phone numbers, businesses) for scams or reputation issues using Google Search grounding.
